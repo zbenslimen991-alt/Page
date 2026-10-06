@@ -66,7 +66,7 @@ canvas{width:100%;height:220px;display:block}.chartbox{height:250px}
     </div>  
   </header>    
 
-  <!-- البطاقات الرئيسية مع إضافة PnL اليوم، الأسبوع، والسنة -->
+  <!-- بطاقات الإحصائيات مع PnL اليوم، الأسبوع، السنة -->
   <div class="cards grid">  
     <div class="card"><div class="label">Equity</div><div id="equity" class="value">—</div></div>  
     <div class="card"><div class="label">Cash</div><div id="cash" class="value">—</div></div>  
@@ -191,7 +191,7 @@ function cfgLoad(){
 }  
 
 function cfgSave(){  
-  const x={owner:$("owner").value.trim(),repo:$("repo").value.trim(),branch:$("branch").value.trim()||"main",token:$("token").value.trim()};  
+  const x={owner:$("owner").value.trim(),repo:$("repo").value.trim(),branch:$("branch").value.trim()\vert{}\vert{}"main",token:$("token").value.trim()};  
   state.cfg=x;sessionStorage.setItem("ziedDashCfg",JSON.stringify(x));  
   if($("remember").checked)localStorage.setItem("ziedDashCfg",JSON.stringify(x));else localStorage.removeItem("ziedDashCfg");  
 }  
@@ -244,17 +244,23 @@ function portfolioEquity(p){
   return {cash,pos,equity:cash+pos};  
 }  
 
-// دالة لحساب أرباح اليوم، الأسبوع، والسنة بناءً على تاريخ الصفقات المغلقة (closedPositions)
+// دالة محسّنة لقراءة الأرباح الفترية (يوم، أسبوع، سنة) سواء كانت جاهزة أو محسوبة بالفرق اليومي
 function calculatePeriodicPnL(p) {
+  if (p.pnlStats) {
+    return {
+      pnlDay: Number(p.pnlStats.day ?? p.pnlStats.today ?? 0),
+      pnlWeek: Number(p.pnlStats.week ?? p.pnlStats.weekly ?? 0),
+      pnlYear: Number(p.pnlStats.year ?? p.pnlStats.yearly ?? 0)
+    };
+  }
+
   const closed = p.closedPositions || [];
   const now = new Date();
-  
-  // بدايات الفترات الزمنية للمقارنة
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
   
   const weekStart = new Date(now);
   const dayOfWeek = weekStart.getDay();
-  const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // اعتبار الأسبوع يبدأ الاثنين أو حسب الحاجة
+  const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
   weekStart.setDate(weekStart.getDate() + diffToMonday);
   weekStart.setHours(0, 0, 0, 0);
   const weekStartTime = weekStart.getTime();
@@ -266,24 +272,24 @@ function calculatePeriodicPnL(p) {
   let pnlYear = 0;
 
   for (const trade of closed) {
-    // محاولة استخراج تاريخ إغلاق الصفقة أو وقتها
     const closeTime = new Date(trade.closeTime || trade.timestamp || trade.exitTime || 0).getTime();
     const profit = Number(trade.realizedPnl ?? trade.pnl ?? trade.profit ?? 0);
 
     if (!isNaN(profit)) {
-      if (closeTime >= yearStart) {
-        pnlYear += profit;
-      }
-      if (closeTime >= weekStartTime) {
-        pnlWeek += profit;
-      }
-      if (closeTime >= todayStart) {
-        pnlDay += profit;
-      }
+      if (closeTime >= yearStart) pnlYear += profit;
+      if (closeTime >= weekStartTime) pnlWeek += profit;
+      if (closeTime >= todayStart) pnlDay += profit;
     }
   }
 
-  // إضافة الأرباح غير المحققة للفقرة اليومية أو إبقاؤها على الصفقات المغلقة حسب الرغبة (هنا نحسب الصفقات المغلقة المفلترة بالفترات)
+  // إذا لم تسجل صفقات مغلقة اليوم، نقوم باحتساب أرباح اليوم كفرق بين الـ Equity الحالي و dailyStartEquity
+  if (pnlDay === 0 && p.dailyStartEquity) {
+    const e = portfolioEquity(p);
+    if (e) {
+      pnlDay = e.equity - Number(p.dailyStartEquity);
+    }
+  }
+
   return { pnlDay, pnlWeek, pnlYear };
 }
 
@@ -293,7 +299,6 @@ function renderOverview(){
   const p=state.data.portfolio||{}, e=portfolioEquity(p)||{cash:0,pos:0,equity:0};  
   const initial=Number(p.initialCapital)||0,pnl=e.equity-initial;  
   
-  // حساب PnL الفترات (يوم، أسبوع، سنة)
   const periodicPnL = calculatePeriodicPnL(p);
 
   $("equity").textContent=money(e.equity);  
@@ -301,7 +306,6 @@ function renderOverview(){
   $("pnl").textContent=(pnl>=0?"+":"")+money(pnl);  
   $("pnl").className="value "+(pnl>=0?"good":"bad");  
 
-  // عرض PnL اليوم، الأسبوع، والسنة مع الألوان (أخضر للموجب وأحمر للسالب)
   $("pnlDay").textContent=(periodicPnL.pnlDay>=0?"+":"")+money(periodicPnL.pnlDay);  
   $("pnlDay").className="value "+(periodicPnL.pnlDay>=0?"good":"bad");  
 
