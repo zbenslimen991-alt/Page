@@ -237,11 +237,15 @@ async function refresh(){
   } else toast("Dashboard updated");  
 }  
 
-// ✅ تم التعديل: يحسب الـ Equity بناءً على allocatedUsd (رأس المال المستثمر) بدلاً من currentPrice
+// ✅ تم التعديل: يحسب الـ Equity بناءً على allocatedUsd (مراكز مفتوحة) + reservedUsd (أوامر معلقة)
 function portfolioEquity(p){  
   if(!p)return null;  
   const cash=Number(p.cash)||0;  
-  const pos=(p.openPositions||[]).reduce((s,x)=>s+(Number(x.allocatedUsd)||0),0);  
+  // المراكز المفتوحة
+  const openPos=(p.openPositions||[]).reduce((s,x)=>s+(Number(x.allocatedUsd)||0),0);  
+  // الأوامر المعلقة (المبالغ المحجوزة)
+  const pendingOrders=(p.pendingLimitOrders||[]).reduce((s,x)=>s+(Number(x.reservedUsd??x.allocatedUsd)||0),0);  
+  const pos = openPos + pendingOrders;  
   return {cash,pos,equity:cash+pos};  
 }  
 
