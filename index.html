@@ -237,10 +237,11 @@ async function refresh(){
   } else toast("Dashboard updated");  
 }  
 
+// ✅ تم التعديل: يحسب الـ Equity بناءً على allocatedUsd (رأس المال المستثمر) بدلاً من currentPrice
 function portfolioEquity(p){  
   if(!p)return null;  
   const cash=Number(p.cash)||0;  
-  const pos=(p.openPositions||[]).reduce((s,x)=>s+(Number(x.currentPrice??x.entryPrice)||0)*(Number(x.units)||0),0);  
+  const pos=(p.openPositions||[]).reduce((s,x)=>s+(Number(x.allocatedUsd)||0),0);  
   return {cash,pos,equity:cash+pos};  
 }  
 
