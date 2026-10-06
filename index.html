@@ -1576,4 +1576,2020 @@ async function refresh(){
       `Connected • ${ok}/${entries.length} • ${state.cfg.repo}`;
 
     $("dot").className =
-      "dot
+      "dot ok";
+
+
+    renderAll();
+
+
+    if(errs.length){
+
+      toast(
+        `Connected, but ${errs.length} file(s) failed.`
+      );
+
+    }else{
+
+      toast("Dashboard updated");
+
+    }
+
+  }catch(e){
+
+    console.error(e);
+
+    $("conn").textContent =
+      "Connection failed";
+
+    $("dot").className =
+      "dot bad";
+
+    toast(
+      e.message ||
+      "Dashboard refresh failed"
+    );
+
+  }finally{
+
+    state.refreshing = false;
+
+  }
+
+}
+
+
+/* =========================================================
+   OKX PRICE
+========================================================= */
+
+async function fetchOKXPrice(instId){
+
+  try{
+
+    if(!instId) return null;
+
+
+    const symbol =
+      String(instId).includes("-")
+        ? String(instId)
+        : `${instId}-USDT`;
+
+
+    const url =
+      `https://www.okx.com/api/v5/market/ticker?instId=${encodeURIComponent(symbol)}`;
+
+
+    const res =
+      await fetch(
+        url,
+        {
+          method:"GET",
+          cache:"no-store"
+        }
+      );
+
+
+    if(!res.ok) return null;
+
+
+    const data =
+      await res.json();
+
+
+    if(
+      data &&
+      Array.isArray(data.data) &&
+      data.data.length > 0
+    ){
+
+      const value =
+        Number(data.data[0].last);
+
+      return Number.isFinite(value)
+        ? value
+        : null;
+
+    }
+
+  }catch(e){
+
+    console.warn(
+      "Error fetching OKX price for",
+      instId,
+      e
+    );
+
+  }
+
+
+  return null;
+
+}
+
+
+/* =========================================================
+   PORTFOLIO EQUITY
+========================================================= */
+
+function portfolioEquity(p){
+
+  if(!p) return null;
+
+
+  const cash =
+    Number(p.cash) || 0;
+
+
+  const positions =
+    Array.isArray(p.openPositions)
+      ? p.openPositions
+      : [];
+
+
+  const pos =
+    positions.reduce(
+      (sum,x) => {
+
+        const current =
+          Number(
+            x.currentPrice ??
+            x.entryPrice
+          ) || 0;
+
+
+        const units =
+          Number(x.units) || 0;
+
+
+        return sum + current * units;
+
+      },
+      0
+    );
+
+
+  return {
+
+    cash,
+
+    pos,
+
+    equity:cash + pos
+
+  };
+
+}
+
+
+/* =========================================================
+   PERIODIC PNL
+========================================================= */
+
+function calculatePeriodicPnL(p){
+
+  if(!p){
+
+    return {
+      pnlDay:0,
+      pnlWeek:0,
+      pnlYear:0
+    };
+
+  }
+
+
+  if(p.pnlStats){
+
+    return {
+
+      pnlDay:
+        Number(
+          p.pnlStats.day ??
+          p.pnlStats.today ??
+          0
+        ),
+
+      pnlWeek:
+        Number(
+          p.pnlStats.week ??
+          p.pnlStats.weekly ??
+          0
+        ),
+
+      pnlYear:
+        Number(
+          p.pnlStats.year ??
+          p.pnlStats.yearly ??
+          0
+        )
+
+    };
+
+  }
+
+
+  const closed =
+    Array.isArray(p.closedPositions)
+      ? p.closedPositions
+      : [];
+
+
+  const now = new Date();
+
+
+  const todayStart =
+    new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate()
+    ).getTime();
+
+
+  const weekStart =
+    new Date(now);
+
+
+  const dayOfWeek =
+    weekStart.getDay();
+
+
+  const diffToMonday =
+    dayOfWeek === 0
+      ? -6
+      : 1 - dayOfWeek;
+
+
+  weekStart.setDate(
+    weekStart.getDate() +
+    diffToMonday
+  );
+
+
+  weekStart.setHours(
+    0,0,0,0
+  );
+
+
+  const weekStartTime =
+    weekStart.getTime();
+
+
+  const yearStart =
+    new Date(
+      now.getFullYear(),
+      0,
+      1
+    ).getTime();
+
+
+  let pnlDay = 0;
+
+  let pnlWeek = 0;
+
+  let pnlYear = 0;
+
+
+  for(const trade of closed){
+
+    const closeTime =
+      new Date(
+        trade.closeTime ||
+        trade.timestamp ||
+        trade.exitTime ||
+        0
+      ).getTime();
+
+
+    const profit =
+      Number(
+        trade.realizedPnl ??
+        trade.pnl ??
+        trade.profit ??
+        0
+      );
+
+
+    if(!Number.isFinite(profit)) continue;
+
+
+    if(closeTime >= yearStart)
+      pnlYear += profit;
+
+
+    if(closeTime >= weekStartTime)
+      pnlWeek += profit;
+
+
+    if(closeTime >= todayStart)
+      pnlDay += profit;
+
+  }
+
+
+  if(
+    pnlDay === 0 &&
+    p.dailyStartEquity !== undefined
+  ){
+
+    const e =
+      portfolioEquity(p);
+
+
+    if(e){
+
+      pnlDay =
+        e.equity -
+        Number(p.dailyStartEquity);
+
+    }
+
+  }
+
+
+  return {
+    pnlDay,
+    pnlWeek,
+    pnlYear
+  };
+
+}
+
+
+/* =========================================================
+   RENDER ALL
+========================================================= */
+
+function renderAll(){
+
+  renderOverview();
+
+  renderPositions();
+
+  renderSignals();
+
+  renderStrategies();
+
+  renderAI();
+
+  renderBacktest();
+
+}
+
+
+/* =========================================================
+   OVERVIEW
+========================================================= */
+
+function renderOverview(){
+
+  const p =
+    state.data.portfolio || {};
+
+
+  const e =
+    portfolioEquity(p) ||
+    {
+      cash:0,
+      pos:0,
+      equity:0
+    };
+
+
+  const initial =
+    Number(p.initialCapital) || 0;
+
+
+  const pnl =
+    e.equity - initial;
+
+
+  const periodicPnL =
+    calculatePeriodicPnL(p);
+
+
+  $("equity").textContent =
+    money(e.equity);
+
+
+  $("cash").textContent =
+    money(e.cash);
+
+
+  $("pnl").textContent =
+    (pnl >= 0 ? "+" : "") +
+    money(pnl);
+
+
+  $("pnl").className =
+    "value " +
+    (pnl >= 0 ? "good" : "bad");
+
+
+  $("pnlDay").textContent =
+    (periodicPnL.pnlDay >= 0 ? "+" : "") +
+    money(periodicPnL.pnlDay);
+
+
+  $("pnlDay").className =
+    "value " +
+    (periodicPnL.pnlDay >= 0 ? "good" : "bad");
+
+
+  $("pnlWeek").textContent =
+    (periodicPnL.pnlWeek >= 0 ? "+" : "") +
+    money(periodicPnL.pnlWeek);
+
+
+  $("pnlWeek").className =
+    "value " +
+    (periodicPnL.pnlWeek >= 0 ? "good" : "bad");
+
+
+  $("pnlYear").textContent =
+    (periodicPnL.pnlYear >= 0 ? "+" : "") +
+    money(periodicPnL.pnlYear);
+
+
+  $("pnlYear").className =
+    "value " +
+    (periodicPnL.pnlYear >= 0 ? "good" : "bad");
+
+
+  const openPositions =
+    Array.isArray(p.openPositions)
+      ? p.openPositions
+      : [];
+
+
+  $("openCount").textContent =
+    openPositions.length;
+
+
+  const sigs =
+    Array.isArray(state.data.signals)
+      ? state.data.signals
+      : [];
+
+
+  const latest =
+    sigs.reduce(
+      (a,b) =>
+        !a ||
+        new Date(b.timestamp) >
+        new Date(a.timestamp)
+          ? b
+          : a,
+      null
+    );
+
+
+  $("updated").textContent =
+    latest
+      ? timefmt(latest.timestamp)
+      : "—";
+
+
+  $("initial").textContent =
+    money(initial);
+
+
+  $("invested").textContent =
+    money(e.pos);
+
+
+  const closedPositions =
+    Array.isArray(p.closedPositions)
+      ? p.closedPositions
+      : [];
+
+
+  $("closedCount").textContent =
+    closedPositions.length;
+
+
+  $("dailyStart").textContent =
+    money(p.dailyStartEquity);
+
+
+  $("riskDate").textContent =
+    p.dailyRiskDate
+      ? "Risk day: " + p.dailyRiskDate
+      : "";
+
+
+  $("signalMeta").textContent =
+    sigs.length + " stored signals";
+
+
+  const last =
+    [...sigs]
+      .sort(
+        (a,b) =>
+          new Date(b.timestamp) -
+          new Date(a.timestamp)
+      )
+      .slice(0,5);
+
+
+  $("latestSignals").innerHTML =
+    last.length
+      ? last.map(
+          s => `
+
+          <div style="
+            padding:9px 0;
+            border-bottom:1px solid #172834;
+            display:flex;
+            justify-content:space-between;
+            gap:8px
+          ">
+
+            <div>
+
+              <b>${esc(s.instId)}</b>
+
+              <div class="mini">
+                ${timefmt(s.timestamp)}
+                •
+                ${esc(
+                  s.dynamicMarketRegime || ""
+                )}
+              </div>
+
+            </div>
+
+            <div style="text-align:right">
+
+              <span class="badge ${
+                s.signal === "STRONG"
+                  ? "green"
+                  : s.signal === "WATCH"
+                    ? "yellow"
+                    : ""
+              }">
+
+                ${esc(s.signal)}
+
+              </span>
+
+              <div class="mini">
+
+                Score
+                ${num(s.score,1)}
+
+                • Prob
+                ${pct(s.probability)}
+
+              </div>
+
+            </div>
+
+          </div>
+
+          `
+        ).join("")
+      : "<div class='empty'>No signals</div>";
+
+
+  renderStrategyBars();
+
+  renderMarketStatus();
+
+  drawEquity(p);
+
+}
+
+
+/* =========================================================
+   STRATEGY BARS
+========================================================= */
+
+function renderStrategyBars(){
+
+  const s =
+    state.data.strategies || {};
+
+
+  const rows =
+    Object.entries(s)
+      .map(
+        ([name,x]) => {
+
+          const t =
+            Number(x.trades) || 0;
+
+          const w =
+            Number(x.wins) || 0;
+
+
+          return {
+
+            name,
+
+            t,
+
+            wr:
+              t
+                ? w / t * 100
+                : 0,
+
+            pnl:
+              Number(x.pnlSum) || 0
+
+          };
+
+        }
+      )
+      .sort(
+        (a,b) => b.t - a.t
+      )
+      .slice(0,8);
+
+
+  const max =
+    Math.max(
+      ...rows.map(x => x.t),
+      1
+    );
+
+
+  $("strategyBars").innerHTML =
+    rows.length
+      ? rows.map(
+          x => `
+
+          <div class="barrow">
+
+            <b>${esc(x.name)}</b>
+
+            <div class="progress">
+
+              <i style="
+                width:${Math.max(
+                  2,
+                  x.t / max * 100
+                )}%
+              "></i>
+
+            </div>
+
+            <span>
+              ${x.t}
+              •
+              ${x.wr.toFixed(1)}%
+            </span>
+
+          </div>
+
+          `
+        ).join("")
+      : "<div class='empty'>No strategy data</div>";
+
+}
+
+
+/* =========================================================
+   MARKET STATUS
+========================================================= */
+
+function renderMarketStatus(){
+
+  const ml =
+    state.data.ml || {};
+
+
+  const mc =
+    ml.marketFilterController || {};
+
+
+  const sc =
+    ml.strategyController || {};
+
+
+  $("marketStatus").innerHTML = `
+
+    <div class="kpirow">
+
+      <div class="kpi">
+        <span class="mini">
+          Market Regime
+        </span>
+        <b>
+          ${esc(
+            mc.lastMarketRegime || "—"
+          )}
+        </b>
+      </div>
+
+      <div class="kpi">
+        <span class="mini">
+          Candidates
+        </span>
+        <b>
+          ${num(
+            mc.lastCandidateCount,
+            0
+          )}
+        </b>
+      </div>
+
+      <div class="kpi">
+        <span class="mini">
+          AI Cycles
+        </span>
+        <b>
+          ${num(
+            sc.cycles,
+            0
+          )}
+        </b>
+      </div>
+
+      <div class="kpi">
+        <span class="mini">
+          AI Decisions
+        </span>
+        <b>
+          ${num(
+            sc.decisions,
+            0
+          )}
+        </b>
+      </div>
+
+    </div>
+
+    <div
+      style="margin-top:12px"
+      class="mini"
+    >
+      Last controller update:
+      ${timefmt(mc.lastUpdate || null)}
+    </div>
+
+  `;
+
+}
+
+
+/* =========================================================
+   EQUITY CHART
+========================================================= */
+
+function drawEquity(p){
+
+  const c =
+    $("equityChart");
+
+
+  if(!c) return;
+
+
+  const ctx =
+    c.getContext("2d");
+
+
+  if(!ctx) return;
+
+
+  const w =
+    c.clientWidth || 700;
+
+
+  const h =
+    c.clientHeight || 220;
+
+
+  const d =
+    window.devicePixelRatio || 1;
+
+
+  c.width =
+    Math.max(
+      1,
+      Math.floor(w * d)
+    );
+
+
+  c.height =
+    Math.max(
+      1,
+      Math.floor(h * d)
+    );
+
+
+  ctx.setTransform(
+    d,0,0,d,0,0
+  );
+
+
+  ctx.clearRect(
+    0,0,w,h
+  );
+
+
+  const closed =
+    Array.isArray(p.closedPositions)
+      ? p.closedPositions
+      : [];
+
+
+  let start =
+    Number(p.initialCapital) || 0;
+
+
+  const pts = [start];
+
+
+  for(const x of closed){
+
+    const r =
+      Number(
+        x.realizedPnl ??
+        x.pnl ??
+        x.profit ??
+        0
+      );
+
+
+    start +=
+      Number.isFinite(r)
+        ? r
+        : 0;
+
+
+    pts.push(start);
+
+  }
+
+
+  if(pts.length < 2) return;
+
+
+  const min =
+    Math.min(...pts);
+
+
+  const max =
+    Math.max(...pts);
+
+
+  const range =
+    max - min || 1;
+
+
+  ctx.strokeStyle =
+    "#203847";
+
+
+  ctx.lineWidth = 1;
+
+
+  for(let i=0;i<4;i++){
+
+    const y =
+      18 +
+      i * (h - 40) / 3;
+
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      0,
+      y
+    );
+
+    ctx.lineTo(
+      w,
+      y
+    );
+
+    ctx.stroke();
+
+  }
+
+
+  ctx.beginPath();
+
+
+  pts.forEach(
+    (v,i) => {
+
+      const x =
+        i * (w - 8) /
+        (pts.length - 1) +
+        4;
+
+
+      const y =
+        10 +
+        (max - v) /
+        range *
+        (h - 32);
+
+
+      if(i){
+
+        ctx.lineTo(
+          x,
+          y
+        );
+
+      }else{
+
+        ctx.moveTo(
+          x,
+          y
+        );
+
+      }
+
+    }
+  );
+
+
+  ctx.strokeStyle =
+    "#5ee7c5";
+
+
+  ctx.lineWidth = 2;
+
+  ctx.stroke();
+
+}
+
+
+/* =========================================================
+   POSITIONS
+========================================================= */
+
+async function renderPositions(){
+
+  const p =
+    state.data.portfolio || {};
+
+
+  const op =
+    Array.isArray(p.openPositions)
+      ? p.openPositions
+      : [];
+
+
+  const po =
+    Array.isArray(p.pendingLimitOrders)
+      ? p.pendingLimitOrders
+      : [];
+
+
+  $("posMeta").textContent =
+    op.length + " positions";
+
+
+  $("pendingMeta").textContent =
+    po.length + " orders";
+
+
+  if(op.length === 0){
+
+    $("openTable").innerHTML =
+      "<tr><td colspan='8' class='empty'>No open positions</td></tr>";
+
+  }else{
+
+    const rows = [];
+
+
+    for(const x of op){
+
+      const entry =
+        Number(x.entryPrice) || 0;
+
+
+      let cur =
+        Number(
+          x.currentPrice ??
+          entry
+        ) || 0;
+
+
+      const livePrice =
+        await fetchOKXPrice(
+          x.instId
+        );
+
+
+      if(
+        Number.isFinite(livePrice)
+      ){
+
+        cur = livePrice;
+
+      }
+
+
+      const u =
+        Number(x.units) || 0;
+
+
+      const pnl =
+        (cur - entry) * u;
+
+
+      rows.push(`
+
+        <tr>
+
+          <td>
+            <b>
+              ${esc(x.instId)}
+            </b>
+          </td>
+
+          <td>
+            ${price(entry)}
+          </td>
+
+          <td>
+
+            ${price(cur)}
+
+            <span
+              class="mini"
+              style="color:var(--accent)"
+            >
+              (Live)
+            </span>
+
+          </td>
+
+          <td class="${
+            pnl >= 0
+              ? "good"
+              : "bad"
+          }">
+
+            ${pnl >= 0 ? "+" : ""}
+            ${money(pnl)}
+
+          </td>
+
+          <td>
+            ${price(x.target)}
+          </td>
+
+          <td>
+            ${price(x.stop)}
+          </td>
+
+          <td>
+
+            <span class="badge">
+              ${esc(
+                x.strategy || "—"
+              )}
+            </span>
+
+          </td>
+
+          <td>
+            ${esc(
+              x.entryOrderType ||
+              "—"
+            )}
+          </td>
+
+        </tr>
+
+      `);
+
+    }
+
+
+    $("openTable").innerHTML =
+      rows.join("");
+
+  }
+
+
+  $("pendingTable").innerHTML =
+    po.length
+      ? po.map(
+          x => `
+
+          <tr>
+
+            <td>
+              <b>
+                ${esc(x.instId)}
+              </b>
+            </td>
+
+            <td>
+              ${price(x.limitPrice)}
+            </td>
+
+            <td>
+              ${price(
+                x.marketPriceAtOrder
+              )}
+            </td>
+
+            <td>
+              ${money(
+                x.reservedUsd ??
+                x.allocatedUsd
+              )}
+            </td>
+
+            <td>
+              ${price(x.target)}
+            </td>
+
+            <td>
+              ${price(x.stop)}
+            </td>
+
+            <td>
+
+              <span class="badge">
+                ${esc(
+                  x.strategy || "—"
+                )}
+              </span>
+
+            </td>
+
+          </tr>
+
+          `
+        ).join("")
+      : "<tr><td colspan='7' class='empty'>No pending orders</td></tr>";
+
+}
+
+
+/* =========================================================
+   SIGNALS
+========================================================= */
+
+function renderSignals(){
+
+  const all =
+    Array.isArray(state.data.signals)
+      ? [...state.data.signals]
+      : [];
+
+
+  all.sort(
+    (a,b) =>
+      new Date(b.timestamp) -
+      new Date(a.timestamp)
+  );
+
+
+  const n =
+    Number(
+      $("signalLimit").value
+    ) || 50;
+
+
+  $("signalTable").innerHTML =
+    all
+      .slice(0,n)
+      .map(
+        s => `
+
+        <tr>
+
+          <td>
+            ${timefmt(s.timestamp)}
+          </td>
+
+          <td>
+            <b>
+              ${esc(s.instId)}
+            </b>
+          </td>
+
+          <td>
+
+            <span class="badge ${
+              s.signal === "STRONG"
+                ? "green"
+                : s.signal === "WATCH"
+                  ? "yellow"
+                  : ""
+            }">
+
+              ${esc(s.signal)}
+
+            </span>
+
+          </td>
+
+          <td>
+            ${price(s.price)}
+          </td>
+
+          <td>
+            ${num(s.score,1)}
+          </td>
+
+          <td>
+            ${pct(s.probability)}
+          </td>
+
+          <td>
+            ${num(s.btcScore,1)}
+          </td>
+
+          <td>
+            ${num(s.mlScore,1)}
+          </td>
+
+          <td>
+            ${num(s.liquidityScore,1)}
+          </td>
+
+          <td>
+            ${esc(
+              s.dynamicMarketRegime ||
+              "—"
+            )}
+          </td>
+
+          <td>
+            ${price(s.target)}
+          </td>
+
+          <td>
+            ${price(s.stop)}
+          </td>
+
+          <td>
+            ${num(s.rr,2)}
+          </td>
+
+        </tr>
+
+        `
+      )
+      .join("")
+      ||
+      "<tr><td colspan='13' class='empty'>No signal history</td></tr>";
+
+}
+
+
+/* =========================================================
+   STRATEGIES
+========================================================= */
+
+function renderStrategies(){
+
+  const s =
+    state.data.strategies || {};
+
+
+  $("strategyTable").innerHTML =
+
+    Object.entries(s)
+
+      .sort(
+        (a,b) =>
+          (Number(b[1].trades) || 0) -
+          (Number(a[1].trades) || 0)
+      )
+
+      .map(
+        ([name,x]) => {
+
+          const t =
+            Number(x.trades) || 0;
+
+          const w =
+            Number(x.wins) || 0;
+
+          const l =
+            Number(x.losses) || 0;
+
+
+          return `
+
+          <tr>
+
+            <td>
+              <b>
+                ${esc(name)}
+              </b>
+            </td>
+
+            <td>${t}</td>
+
+            <td>${w}</td>
+
+            <td>${l}</td>
+
+            <td>
+              ${
+                t
+                  ? pct(w/t*100)
+                  : "—"
+              }
+            </td>
+
+            <td class="${
+              Number(x.pnlSum) >= 0
+                ? "good"
+                : "bad"
+            }">
+
+              ${money(x.pnlSum)}
+
+            </td>
+
+            <td>
+              ${num(x.weight,3)}
+            </td>
+
+            <td>
+              ${num(x.slHits,0)}
+            </td>
+
+            <td>
+              ${num(x.tpHits,0)}
+            </td>
+
+            <td>
+              ${num(x.timeHits,0)}
+            </td>
+
+            <td>
+              ${num(x.targetRR,2)}
+            </td>
+
+          </tr>
+
+          `;
+
+        }
+      )
+
+      .join("")
+      ||
+      "<tr><td colspan='11' class='empty'>No strategy data</td></tr>";
+
+
+  const d =
+    state.data.discovery || {};
+
+
+  const rows =
+    Array.isArray(d.candidates)
+      ? d.candidates
+      : [];
+
+
+  $("discoveryMeta").textContent =
+    (
+      d.updatedAt
+        ? timefmt(d.updatedAt) + " • "
+        : ""
+    ) +
+    rows.length +
+    " candidates";
+
+
+  $("discoveryTable").innerHTML =
+
+    rows
+
+      .slice()
+
+      .sort(
+        (a,b) =>
+          (Number(b.support) || 0) -
+          (Number(a.support) || 0)
+      )
+
+      .slice(0,200)
+
+      .map(
+        x => `
+
+        <tr>
+
+          <td>
+            <b>
+              ${esc(x.name)}
+            </b>
+          </td>
+
+          <td>
+            ${num(x.support,0)}
+          </td>
+
+          <td>
+            ${num(x.sampleCount,0)}
+          </td>
+
+          <td>
+            ${pct(x.matchRate)}
+          </td>
+
+          <td>
+            <span class="badge">
+              ${esc(x.status || "—")}
+            </span>
+          </td>
+
+          <td>
+            ${x.validated ? "YES" : "NO"}
+          </td>
+
+          <td>
+            ${num(x.trades,0)}
+          </td>
+
+          <td>
+            ${pct(x.winRate)}
+          </td>
+
+          <td>
+            ${num(x.profitFactor,2)}
+          </td>
+
+        </tr>
+
+        `
+      )
+
+      .join("")
+      ||
+      "<tr><td colspan='9' class='empty'>No discovery data</td></tr>";
+
+}
+
+
+/* =========================================================
+   AI / ML
+========================================================= */
+
+function renderAI(){
+
+  const ml =
+    state.data.ml || {};
+
+
+  const models =
+    ml.models || {};
+
+
+  const sc =
+    ml.strategyController || {};
+
+
+  const mc =
+    ml.marketFilterController || {};
+
+
+  const modelRows =
+    Object.entries(models);
+
+
+  $("modelMeta").textContent =
+    modelRows.length +
+    " models";
+
+
+  $("aiOverview").innerHTML = `
+
+    <div class="kpirow">
+
+      <div class="kpi">
+
+        <span class="mini">
+          Version
+        </span>
+
+        <b>
+          ${num(ml.version,0)}
+        </b>
+
+      </div>
+
+      <div class="kpi">
+
+        <span class="mini">
+          Models
+        </span>
+
+        <b>
+          ${modelRows.length}
+        </b>
+
+      </div>
+
+      <div class="kpi">
+
+        <span class="mini">
+          AI Wins
+        </span>
+
+        <b class="good">
+          ${num(sc.wins,0)}
+        </b>
+
+      </div>
+
+      <div class="kpi">
+
+        <span class="mini">
+          AI Losses
+        </span>
+
+        <b class="bad">
+          ${num(sc.losses,0)}
+        </b>
+
+      </div>
+
+    </div>
+
+  `;
+
+
+  $("controllers").innerHTML = `
+
+    <div class="kpirow">
+
+      <div class="kpi">
+
+        <span class="mini">
+          Strategy Cycles
+        </span>
+
+        <b>
+          ${num(sc.cycles,0)}
+        </b>
+
+      </div>
+
+      <div class="kpi">
+
+        <span class="mini">
+          Decisions
+        </span>
+
+        <b>
+          ${num(sc.decisions,0)}
+        </b>
+
+      </div>
+
+      <div class="kpi">
+
+        <span class="mini">
+          Market Cycles
+        </span>
+
+        <b>
+          ${num(mc.cycles,0)}
+        </b>
+
+      </div>
+
+      <div class="kpi">
+
+        <span class="mini">
+          Relax Level
+        </span>
+
+        <b>
+          ${num(mc.relaxLevel,2)}
+        </b>
+
+      </div>
+
+    </div>
+
+    <div
+      style="margin-top:12px"
+      class="mini"
+    >
+
+      Market filter:
+      ${esc(
+        mc.lastMarketRegime || "—"
+      )}
+
+      •
+
+      Candidates:
+      ${num(
+        mc.lastCandidateCount,
+        0
+      )}
+
+      •
+
+      Updated:
+      ${timefmt(mc.lastUpdate)}
+
+    </div>
+
+  `;
+
+
+  $("modelTable").innerHTML =
+
+    modelRows
+
+      .map(
+        ([name,x]) => `
+
+        <tr>
+
+          <td>
+            <b>
+              ${esc(name)}
+            </b>
+          </td>
+
+          <td>
+            ${num(x.onlineSamples,0)}
+          </td>
+
+          <td class="good">
+            ${num(x.wins,0)}
+          </td>
+
+          <td class="bad">
+            ${num(x.losses,0)}
+          </td>
+
+          <td>
+            ${num(x.timeouts,0)}
+          </td>
+
+          <td>
+            ${num(x.bootstrapSamples,0)}
+          </td>
+
+          <td>
+            ${num(x.onlineSamples,0)}
+          </td>
+
+          <td>
+            ${timefmt(x.lastUpdate)}
+          </td>
+
+        </tr>
+
+        `
+      )
+
+      .join("")
+      ||
+      "<tr><td colspan='8' class='empty'>No ML models</td></tr>";
+
+}
+
+
+/* =========================================================
+   BACKTEST
+========================================================= */
+
+function extractBacktest(x){
+
+  if(
+    !x ||
+    typeof x !== "object"
+  ){
+
+    return {};
+
+  }
+
+
+  const keys = [
+
+    "trades",
+    "totalTrades",
+    "wins",
+    "losses",
+    "winRate",
+    "profitFactor",
+    "pnl",
+    "pnlSum",
+    "rr",
+    "targetRR",
+    "avgRR"
+
+  ];
+
+
+  const o = {};
+
+
+  for(const k of keys){
+
+    if(x[k] !== undefined){
+
+      o[k] = x[k];
+
+    }
+
+  }
+
+
+  return o;
+
+}
+
+
+function renderBacktest(){
+
+  const b =
+    state.data.backtest || {};
+
+
+  const rows =
+    Object.entries(b);
+
+
+  $("btMeta").textContent =
+    rows.length +
+    " result records";
+
+
+  $("btTable").innerHTML =
+
+    rows
+
+      .slice(0,500)
+
+      .map(
+        ([name,x]) => {
+
+          const q =
+            extractBacktest(x);
+
+
+          const t =
+            q.trades ??
+            q.totalTrades;
+
+
+          const w =
+            q.wins;
+
+
+          const wr =
+            q.winRate ??
+            (
+              t &&
+              w !== undefined
+                ? w / t * 100
+                : null
+            );
+
+
+          return `
+
+          <tr>
+
+            <td>
+              <b>
+                ${esc(name)}
+              </b>
+            </td>
+
+            <td>
+              ${num(t,0)}
+            </td>
+
+            <td>
+              ${
+                wr == null
+                  ? "—"
+                  : pct(wr)
+              }
+            </td>
+
+            <td>
+              ${num(q.profitFactor,2)}
+            </td>
+
+            <td>
+              ${money(
+                q.pnl ??
+                q.pnlSum
+              )}
+            </td>
+
+            <td>
+              ${num(
+                q.rr ??
+                q.targetRR ??
+                q.avgRR,
+                2
+              )}
+            </td>
+
+            <td>
+              <span class="badge">
+                backtest_results.json
+              </span>
+            </td>
+
+          </tr>
+
+          `;
+
+        }
+      )
+
+      .join("")
+      ||
+      "<tr><td colspan='7' class='empty'>No backtest data</td></tr>";
+
+}
+
+
+/* =========================================================
+   MODAL
+========================================================= */
+
+function openModal(){
+
+  $("modal").classList.add(
+    "show"
+  );
+
+}
+
+
+function closeModal(){
+
+  $("modal").classList.remove(
+    "show"
+  );
+
+}
+
+
+/* =========================================================
+   TABS
+========================================================= */
+
+document
+  .querySelectorAll(".tab")
+  .forEach(
+    button => {
+
+      button.onclick = () => {
+
+        document
+          .querySelectorAll(".tab")
+          .forEach(
+            x =>
+              x.classList.remove(
+                "active"
+              )
+          );
+
+
+        button.classList.add(
+          "active"
+        );
+
+
+        document
+          .querySelectorAll(".tabpage")
+          .forEach(
+            page => {
+
+              page.style.display =
+                page.id ===
+                button.dataset.tab
+                  ? "block"
+                  : "none";
+
+            }
+          );
+
+      };
+
+    }
+  );
+
+
+/* =========================================================
+   EVENTS
+========================================================= */
+
+$("settingsBtn").onclick =
+  openModal;
+
+
+$("closeModal").onclick =
+  closeModal;
+
+
+$("refreshBtn").onclick =
+  refresh;
+
+
+$("signalLimit").onchange =
+  renderSignals;
+
+
+$("saveConnect").onclick =
+  async () => {
+
+    try{
+
+      cfgSave();
+
+      closeModal();
+
+      await refresh();
+
+    }catch(e){
+
+      console.error(e);
+
+      toast(
+        e.message ||
+        "Connection error"
+      );
+
+    }
+
+  };
+
+
+/* Close modal by clicking outside */
+
+$("modal").addEventListener(
+  "click",
+  event => {
+
+    if(event.target === $("modal")){
+
+      closeModal();
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   RESIZE
+========================================================= */
+
+window.addEventListener(
+  "resize",
+  () => {
+
+    if(state.data.portfolio){
+
+      drawEquity(
+        state.data.portfolio
+      );
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   START
+========================================================= */
+
+cfgLoad();
+
+
+if(state.cfg.token){
+
+  refresh();
+
+  state.timer =
+    setInterval(
+      refresh,
+      30000
+    );
+
+}else{
+
+  openModal();
+
+}
+
+</script>
+
+</body>
+</html>
