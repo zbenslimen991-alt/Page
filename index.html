@@ -19,18 +19,23 @@
 @media(max-width:900px){.map-page .map-row,.map-page .map-row3{grid-template-columns:1fr}.map-page .map-groups{grid-template-columns:repeat(2,1fr)}.map-page .map-head{flex-direction:column}.map-page .map-legend{justify-content:flex-start}}
 @media(max-width:520px){.map-page .map-groups{grid-template-columns:1fr}.map-page .map-wrap{padding:14px}}
 .strategy-status{white-space:nowrap}.tablewrap table{min-width:980px}
+.meta-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}.meta-card{padding:13px;border:1px solid #203d51;border-radius:14px;background:#08141e}.meta-card b{display:block;font-size:18px;margin-top:4px}.meta-card .mini{display:block}.meta-card.ok{border-color:#2d715e}.meta-card.warn{border-color:#6a5221}.meta-card.no{border-color:#713340;background:#211017}.meta-table{min-width:1100px}.meta-note{margin-top:10px;padding:9px 11px;border:1px dashed #2c5a75;border-radius:11px;color:#a9c6d8;font-size:11px}
+@media(max-width:1200px){.meta-grid{grid-template-columns:repeat(3,1fr)}}@media(max-width:760px){.meta-grid{grid-template-columns:1fr 1fr}}@media(max-width:430px){.meta-grid{grid-template-columns:1fr}}
 @media(max-width:760px){.tablewrap table{min-width:900px}}
 </style></head><body>
 <div class="wrap">
 <header class="top"><div class="brand"><div class="logo">ZQ</div><div><h1>Zied Quant • Trading Intelligence</h1><div class="sub">Tableau de bord professionnel du système de trading quantitatif et de l’intelligence artificielle</div></div></div><div class="actions"><span class="status"><i id="dot" class="dot"></i><span id="conn">Disconnected</span></span><button class="btn" id="settingsBtn">⚙ Connexion</button><button class="btn primary" id="refreshBtn">↻ Actualiser</button></div></header>
 <section class="hero"><div class="hero-grid"><div><div class="eyebrow">QUANT • AI • RISK • LEARNING</div><h2>Des données brutes à une décision de trading intelligente</h2><p>Une architecture intégrée réunissant les données de marché, les indicateurs, le moteur de stratégies multi-approches, l’agrégation des signaux, le filtrage, l’évaluation des opportunités, l’IA, la gestion des risques et l’apprentissage continu — dans un parcours unique et lisible.</p></div><div class="hero-metrics"><div class="hero-metric"><span class="mini">Signal → Decision</span><b>13 étapes</b></div><div class="hero-metric"><span class="mini">Decision Score</span><b>0 — 100</b></div><div class="hero-metric"><span class="mini">Adaptive Engine</span><b>Dynamic</b></div><div class="hero-metric"><span class="mini">Risk Gate</span><b>Active</b></div></div></div></section>
 <div class="cards"><div class="card"><div class="label">Scanner horaire</div><div class="value good">Actif • sans Backtest</div></div><div class="card"><div class="label">Backtest</div><div class="value warn">Hebdomadaire</div></div><div class="card"><div class="label">Apprentissage</div><div class="value">Hebdomadaire</div></div><div class="card"><div class="label">Equity</div><div id="equity" class="value">—</div></div><div class="card"><div class="label">Liquidités</div><div id="cash" class="value">—</div></div><div class="card"><div class="label">P&L total</div><div id="pnl" class="value">—</div></div><div class="card"><div class="label">P&L du jour</div><div id="pnlDay" class="value">—</div></div><div class="card"><div class="label">P&L hebdomadaire</div><div id="pnlWeek" class="value">—</div></div><div class="card"><div class="label">P&L annuel</div><div id="pnlYear" class="value">—</div></div><div class="card"><div class="label">Positions ouvertes</div><div id="openCount" class="value">—</div></div><div class="card"><div class="label">Mise à jour du scanner</div><div id="updated" class="value" style="font-size:14px">—</div></div><div class="card"><div class="label">Prix marché</div><div id="marketFeed" class="value" style="font-size:14px">OKX • —</div></div></div>
-<div class="tabs"><button class="btn tab active" data-tab="overview">Vue d’ensemble</button><button class="btn tab" data-tab="positions">Positions</button><button class="btn tab" data-tab="signals">Signaux</button><button class="btn tab" data-tab="strategies">Performance</button><button class="btn tab" data-tab="ai">IA / apprentissage</button><button class="btn tab" data-tab="backtest">Backtest</button><button class="btn tab" data-tab="monthly">P&L mensuel</button><button class="btn tab" data-tab="map">Carte</button></div>
-<main id="overview" class="tabpage"><section class="panel" style="margin-bottom:14px"><div class="panelhead"><div><h2>Cycle d’exécution & d’apprentissage</h2><span class="mini">Architecture actuelle</span></div><span class="badge green">Séparation Hourly / Weekly</span></div><div class="kpirow"><div class="kpi"><span class="mini">Chaque heure</span><b class="good">Scanner uniquement</b><span class="mini">Marché → stratégies → IA → risque → décision</span></div><div class="kpi"><span class="mini">Chaque semaine</span><b class="warn">Backtest + Walk-Forward</b><span class="mini">Recalcul des performances historiques</span></div><div class="kpi"><span class="mini">Apprentissage hebdomadaire</span><b>Learning</b><span class="mini">Mise à jour des pondérations et mémoire IA</span></div><div class="kpi"><span class="mini">Résultat utilisé par Hourly</span><b>Cache hebdomadaire</b><span class="mini">Aucun recalcul Backtest pendant le Scanner</span></div></div></section><div class="grid layout"><section class="panel"><div class="panelhead"><h2>Résumé du portefeuille</h2><span id="riskDate" class="mini">—</span></div><div class="kpirow"><div class="kpi"><span class="mini">Capital initial</span><b id="initial">—</b></div><div class="kpi"><span class="mini">Investi / réservé</span><b id="invested">—</b></div><div class="kpi"><span class="mini">Trades clôturés</span><b id="closedCount">—</b></div><div class="kpi"><span class="mini">Equity au début de la journée</span><b id="dailyStart">—</b></div></div><div class="chartbox"><canvas id="equityChart"></canvas></div></section><section class="panel"><div class="panelhead"><h2>Derniers signaux</h2><span id="signalMeta" class="mini">—</span></div><div id="latestSignals"></div></section></div><div class="grid layout"><section class="panel"><div class="panelhead"><h2>Performance du moteur de stratégies</h2><span class="mini">Depuis strategy_stats.json</span></div><div id="strategyBars"></div></section><section class="panel"><div class="panelhead"><h2>État du marché & IA</h2></div><div id="marketStatus"></div></section></div></main>
-<main id="positions" class="tabpage" style="display:none"><div class="grid two"><section class="panel"><div class="panelhead"><h2>Positions ouvertes</h2><span id="posMeta" class="mini"></span></div><div class="tablewrap"><table><thead><tr><th>Actif</th><th>Entrée</th><th>Actuel OKX</th><th>P&L latent</th><th>Cible</th><th>Stop</th><th>Stratégie</th><th>Type</th></tr></thead><tbody id="openTable"></tbody></table></div></section><section class="panel"><div class="panelhead"><h2>Ordres en attente</h2><span id="pendingMeta" class="mini"></span></div><div class="tablewrap"><table><thead><tr><th>Actif</th><th>Limite</th><th>Marché OKX</th><th>Réservé</th><th>Cible</th><th>Stop</th><th>Stratégie</th></tr></thead><tbody id="pendingTable"></tbody></table></div></section></div></main>
-<main id="signals" class="tabpage" style="display:none"><section class="panel"><div class="panelhead"><h2>Journal des signaux</h2><select id="signalLimit"><option>50</option><option>100</option><option>200</option><option>500</option></select></div><div class="tablewrap"><table><thead><tr><th>Temps</th><th>Actif</th><th>Signal</th><th>Price</th><th>Score</th><th>Probabilité</th><th>BTC</th><th>ML</th><th>Liquidité</th><th>Régime</th><th>Cible</th><th>Stop</th><th>RR</th></tr></thead><tbody id="signalTable"></tbody></table></div></section></main>
-<main id="strategies" class="tabpage" style="display:none"><section class="panel"><div class="panelhead"><h2>Statistiques de performance</h2><span id="strategyMeta" class="mini"></span></div><div class="tablewrap"><table><thead><tr><th>Rang</th><th>Stratégie</th><th>Statut</th><th>Trades</th><th>Gains</th><th>Pertes</th><th>Taux de réussite</th><th>P&L</th><th>Poids</th><th>SL</th><th>TP</th><th>Temps</th><th>RR</th></tr></thead><tbody id="strategyTable"></tbody></table></div></section><section class="panel" style="margin-top:14px"><div class="panelhead"><h2>Découverte des patterns de chandeliers</h2><span id="discoveryMeta" class="mini"></span></div><div class="tablewrap"><table><thead><tr><th>Nom</th><th>Support</th><th>Échantillons</th><th>Correspondance</th><th>Statut</th><th>Validé</th><th>Trades</th><th>Taux de réussite</th><th>PF</th></tr></thead><tbody id="discoveryTable"></tbody></table></div></section></main>
+<div class="tabs"><button class="btn tab active" data-tab="overview">Vue d’ensemble</button><button class="btn tab" data-tab="positions">Positions</button><button class="btn tab" data-tab="signals">Signaux</button><button class="btn tab" data-tab="strategies">Performance</button><button class="btn tab" data-tab="ai">IA / apprentissage</button><button class="btn tab" data-tab="meta">Meta Decision</button><button class="btn tab" data-tab="backtest">Backtest</button><button class="btn tab" data-tab="monthly">P&L mensuel</button><button class="btn tab" data-tab="map">Carte</button></div>
+<main id="overview" class="tabpage"><section class="panel" style="margin-bottom:14px"><div class="panelhead"><div><h2>Cycle d’exécution & d’apprentissage</h2><span class="mini">Architecture actuelle</span></div><span class="badge green">Séparation Hourly / Weekly</span></div><div class="kpirow"><div class="kpi"><span class="mini">Chaque heure</span><b class="good">Scanner uniquement</b><span class="mini">Marché → stratégies → IA → risque → décision</span></div><div class="kpi"><span class="mini">Chaque semaine</span><b class="warn">Backtest + Walk-Forward</b><span class="mini">Recalcul des performances historiques</span></div><div class="kpi"><span class="mini">Apprentissage hebdomadaire</span><b>Learning</b><span class="mini">Mise à jour des pondérations et mémoire IA</span></div><div class="kpi"><span class="mini">Résultat utilisé par Hourly</span><b>Cache hebdomadaire</b><span class="mini">Aucun recalcul Backtest pendant le Scanner</span></div></div></section><div class="grid layout"><section class="panel"><div class="panelhead"><h2>Résumé du portefeuille</h2><span id="riskDate" class="mini">—</span></div><div class="kpirow"><div class="kpi"><span class="mini">Capital initial</span><b id="initial">—</b></div><div class="kpi"><span class="mini">Investi / réservé</span><b id="invested">—</b></div><div class="kpi"><span class="mini">Trades clôturés</span><b id="closedCount">—</b></div><div class="kpi"><span class="mini">Equity au début de la journée</span><b id="dailyStart">—</b></div></div><div class="chartbox"><canvas id="equityChart"></canvas></div></section><section class="panel"><div class="panelhead"><h2>Derniers signaux</h2><span id="signalMeta" class="mini">—</span></div><div id="latestSignals"></div></section></div><div class="grid layout"><section class="panel"><div class="panelhead"><h2>Performance du moteur de stratégies</h2><span class="mini">Depuis strategy_stats.json</span></div><div id="strategyBars"></div></section><section class="panel"><div class="panelhead"><h2>État du marché & IA</h2></div><div id="marketStatus"></div></section></div><section class="panel" style="margin-top:14px"><div class="panelhead"><div><h2>Meta Decision & No-Trade Intelligence</h2><span class="mini">Sélection de stratégie • EV • décroissance • taille dynamique</span></div><span id="metaOverviewStatus" class="badge">—</span></div><div id="metaOverview"></div></section></main>
+<main id="positions" class="tabpage" style="display:none"><div class="grid two"><section class="panel"><div class="panelhead"><h2>Positions ouvertes</h2><span id="posMeta" class="mini"></span></div><div class="tablewrap"><table><thead><tr><th>Actif</th><th>Entrée</th><th>Actuel OKX</th><th>P&L latent</th><th>Cible</th><th>Stop</th><th>Stratégie</th><th>Meta</th><th>EV</th><th>Décay</th><th>Taille</th><th>Type</th></tr></thead><tbody id="openTable"></tbody></table></div></section><section class="panel"><div class="panelhead"><h2>Ordres en attente</h2><span id="pendingMeta" class="mini"></span></div><div class="tablewrap"><table><thead><tr><th>Actif</th><th>Limite</th><th>Marché OKX</th><th>Réservé</th><th>Cible</th><th>Stop</th><th>Stratégie</th><th>Meta</th><th>EV</th><th>Décay</th><th>Taille</th></tr></thead><tbody id="pendingTable"></tbody></table></div></section></div></main>
+<main id="signals" class="tabpage" style="display:none"><section class="panel"><div class="panelhead"><h2>Journal des signaux</h2><select id="signalLimit"><option>50</option><option>100</option><option>200</option><option>500</option></select></div><div class="tablewrap"><table><thead><tr><th>Temps</th><th>Actif</th><th>Signal</th><th>Price</th><th>Score</th><th>Probabilité</th><th>BTC</th><th>ML</th><th>Liquidité</th><th>Régime</th><th>Meta</th><th>EV</th><th>Décay</th><th>Taille</th><th>Cible</th><th>Stop</th><th>RR</th></tr></thead><tbody id="signalTable"></tbody></table></div></section></main>
+<main id="strategies" class="tabpage" style="display:none"><section class="panel"><div class="panelhead"><h2>Statistiques de performance</h2><span id="strategyMeta" class="mini"></span></div><div class="tablewrap"><table><thead><tr><th>Rang</th><th>Stratégie</th><th>Statut</th><th>Trades</th><th>Gains</th><th>Pertes</th><th>Taux de réussite</th><th>P&L</th><th>Poids</th><th>Décay</th><th>SL</th><th>TP</th><th>Temps</th><th>RR</th></tr></thead><tbody id="strategyTable"></tbody></table></div></section><section class="panel" style="margin-top:14px"><div class="panelhead"><h2>Découverte des patterns de chandeliers</h2><span id="discoveryMeta" class="mini"></span></div><div class="tablewrap"><table><thead><tr><th>Nom</th><th>Support</th><th>Échantillons</th><th>Correspondance</th><th>Statut</th><th>Validé</th><th>Trades</th><th>Taux de réussite</th><th>PF</th></tr></thead><tbody id="discoveryTable"></tbody></table></div></section></main>
 <main id="ai" class="tabpage" style="display:none"><div class="grid two"><section class="panel"><div class="panelhead"><h2>Résumé IA / ML</h2></div><div id="aiOverview"></div></section><section class="panel"><div class="panelhead"><h2>Contrôleurs</h2></div><div id="controllers"></div></section></div><section class="panel" style="margin-top:14px"><div class="panelhead"><h2>État des modèles</h2><span id="modelMeta" class="mini"></span></div><div class="tablewrap"><table><thead><tr><th>Marché</th><th>Échantillons</th><th>Gains</th><th>Pertes</th><th>Timeouts</th><th>Bootstrap</th><th>En ligne</th><th>Dernière mise à jour</th></tr></thead><tbody id="modelTable"></tbody></table></div></section></main>
+<main id="meta" class="tabpage" style="display:none">
+<section class="panel"><div class="panelhead"><div><h2>Meta Decision Engine</h2><span class="mini">Vue opérationnelle des nouvelles couches de décision ajoutées au moteur</span></div><span id="metaMeta" class="mini">—</span></div><div id="metaCards"></div><div id="metaTableWrap" class="tablewrap" style="margin-top:14px"><table class="meta-table"><thead><tr><th>Temps</th><th>Actif</th><th>Source</th><th>Meta Strategy</th><th>Meta Score</th><th>EV</th><th>Probabilité</th><th>Décay</th><th>No-Trade</th><th>Position Sizing</th></tr></thead><tbody id="metaTable"></tbody></table></div><div class="meta-note">Les champs Meta sont affichés directement lorsqu’ils sont présents dans les données du Runner. L’EV et le Strategy Decay peuvent être recalculés localement pour conserver une vue cohérente même avec d’anciennes données.</div></section>
+</main>
 <main id="monthly" class="tabpage" style="display:none">
 <section class="panel"><div class="panelhead"><div><h2>P&L mensuel</h2><span class="mini">Performance réalisée par mois à partir des positions clôturées</span></div><select id="monthlyYear" class="year-select"></select></div>
 <div class="month-summary"><div class="month-card"><span class="mini">P&L de l’année</span><b id="monthlyYearPnl">—</b></div><div class="month-card"><span class="mini">Mois positif</span><b id="monthlyPositive">—</b></div><div class="month-card"><span class="mini">Meilleur mois</span><b id="monthlyBest">—</b></div></div>
@@ -49,9 +54,9 @@
 <div class="map-card map-market"><span class="map-num">04</span><h2>Contexte de marché</h2><ul><li>Tendance & force du marché</li><li>Volatilité & momentum</li><li>Supports & résistances</li><li>Structure HH / HL / LH / LL</li></ul></div></section>
 <div class="map-flow">↓ Analyse multicouche ↓</div>
 <section class="map-engine"><div class="map-enginehead"><h2>05 • Moteur dynamique de stratégies</h2><span>Les stratégies individuelles restent masquées : priorité à la logique du moteur.</span></div><div class="map-groups"><div class="map-g"><b>Tendance</b><small>Trend</small></div><div class="map-g"><b>Momentum</b><small>Momentum</small></div><div class="map-g"><b>Breakout</b><small>Expansion</small></div><div class="map-g"><b>Rebond</b><small>Reversal</small></div><div class="map-g"><b>Volume</b><small>Flow</small></div><div class="map-g"><b>Avancées</b><small>Adaptive</small></div></div><div class="map-enginefoot">Signaux multiples • pondérations dynamiques • comparaison historique • sélection adaptée au régime de marché • évaluation continue</div></section>
-<div class="map-row3"><div class="map-card"><span class="map-num">06</span><h2>Agrégation des signaux</h2><ul><li>Agrégation des signaux du moteur</li><li>Force globale achat / vente</li><li>Concordance de tendance</li></ul></div><div class="map-card"><span class="map-num">07</span><h2>Filtrage intelligent</h2><ul><li>Élimination des signaux faibles</li><li>Exclusion des contradictions</li><li>Application des règles de risque</li></ul></div><div class="map-card"><span class="map-num">08</span><h2>Score de l’opportunité</h2><ul><li>Score de 0 à 100</li><li>Force + confiance + concordance</li><li>Faible / moyenne / forte</li></ul></div></div>
+<div class="map-row3"><div class="map-card"><span class="map-num">06</span><h2>Agrégation des signaux</h2><ul><li>Agrégation des signaux du moteur</li><li>Force globale achat / vente</li><li>Concordance de tendance</li></ul></div><div class="map-card"><span class="map-num">07</span><h2>Filtrage intelligent</h2><ul><li>Élimination des signaux faibles</li><li>Exclusion des contradictions</li><li>No-Trade Intelligence</li><li>Application des règles de risque</li></ul></div><div class="map-card"><span class="map-num">08</span><h2>Score de l’opportunité</h2><ul><li>Score de 0 à 100</li><li>Force + confiance + concordance</li><li>Faible / moyenne / forte</li></ul></div></div>
 <div class="map-flow">↓ Validation IA + contrôle du risque ↓</div>
-<div class="map-row3"><div class="map-card map-ai"><span class="map-num">09</span><h2>IA & apprentissage</h2><ul><li>Analyse approfondie de l’opportunité</li><li>Comparaison historique</li><li>Probabilité de réussite</li><li>Timing d’entrée optimal</li><li>Confirmation ou rejet</li><li>Mise à jour des pondérations</li></ul></div><div class="map-card map-risk"><span class="map-num">10</span><h2>Gestion des risques</h2><ul><li>Taille de position</li><li>Risque / rendement</li><li>Perte maximale</li><li>Conditions de marché & événements</li></ul></div><div class="map-card map-decision"><span class="map-num">11</span><h2>Décision d’entrée</h2><ul><li>Entrer en position si les critères sont réunis</li><li>Sinon : ne pas entrer</li><li>Décision fondée sur les preuves et le risque</li></ul></div></div>
+<div class="map-row3"><div class="map-card map-ai"><span class="map-num">09</span><h2>IA & apprentissage</h2><ul><li>Analyse approfondie de l’opportunité</li><li>Comparaison historique</li><li>Probabilité de réussite</li><li>Timing d’entrée optimal</li><li>Confirmation ou rejet</li><li>Meta-Strategy Selector</li><li>Expected Value Engine</li><li>Mise à jour des pondérations</li></ul></div><div class="map-card map-risk"><span class="map-num">10</span><h2>Gestion des risques</h2><ul><li>Taille de position dynamique</li><li>Risque / rendement</li><li>Expected Value</li><li>Strategy Decay</li><li>Perte maximale</li><li>Conditions de marché & événements</li></ul></div><div class="map-card map-decision"><span class="map-num">11</span><h2>Décision d’entrée</h2><ul><li>Entrer en position si les critères sont réunis</li><li>Sinon : NO-TRADE</li><li>Décision fondée sur EV + confiance + decay + risque</li></ul></div></div>
 <div class="map-decisionwrap"><div class="map-outcome"><h2>✓ Entrée en position</h2><ul><li>Type d’ordre</li><li>Prix d’entrée</li><li>Stop-loss</li><li>Take-profit</li><li>Taille de position</li></ul></div><div class="map-outcome"><h2>12 • Gestion de la position</h2><ul><li>Suivi de la tendance du marché</li><li>Mise à jour du stop-loss</li><li>Prises de profits progressives</li><li>Réévaluation continue</li><li>Clôture lorsque les conditions sont remplies</li></ul></div><div class="map-outcome map-no"><h2>✕ Ne pas entrer</h2><ul><li>Opportunité insuffisante</li><li>Risque élevé</li><li>Signaux contradictoires</li><li>Attendre une meilleure opportunité</li></ul></div></div>
 <div class="map-loop"><b>13 • Cycle hebdomadaire</b> — Backtest + Walk-Forward → analyse des résultats → apprentissage → mise à jour des pondérations → sauvegarde → résultats utilisés par le Scanner horaire</div><div class="map-note"><b>Règle d’exécution :</b> le Scanner horaire ne lance jamais le Backtest. Il utilise uniquement les derniers résultats hebdomadaires disponibles.</div>
 <div class="map-note"><b>Règle de décision :</b> Signal + force + confiance + concordance du marché + risque acceptable = décision de trading</div>
@@ -364,8 +369,91 @@ function calculatePeriodicPnL(p) {
   return { pnlDay, pnlWeek, pnlYear };
 }
 
-function renderAll(){renderOverview();renderPositions();renderSignals();renderStrategies();renderAI();renderBacktest();renderMonthlyYearOptions();renderMonthlyPnL()}  
+function renderAll(){renderOverview();renderPositions();renderSignals();renderStrategies();renderAI();renderMetaDecision();renderBacktest();renderMonthlyYearOptions();renderMonthlyPnL()}  
 
+function normalizeProbability(v){
+  const n=Number(v);
+  if(!Number.isFinite(n))return null;
+  return n>1?n/100:n;
+}
+function calcExpectedValueLocal(x){
+  if(Number.isFinite(Number(x?.expectedValuePct)))return Number(x.expectedValuePct);
+  const entry=Number(x?.price??x?.entryPrice??x?.limitPrice);
+  const stop=Number(x?.stop),target=Number(x?.target);
+  const p=normalizeProbability(x?.probability??x?.expectedValueWinProbability);
+  if(!Number.isFinite(entry)||entry<=0||!Number.isFinite(stop)||!Number.isFinite(target)||p==null)return null;
+  const risk=Math.abs(entry-stop)/entry*100;
+  const reward=Math.abs(target-entry)/entry*100;
+  const cost=Number(x?.expectedValueCostPct??0.26);
+  return p*reward-(1-p)*risk-cost;
+}
+function strategyDecay(label){
+  const closed=state.data.portfolio?.closedPositions||[];
+  const rows=closed.filter(x=>String(x?.strategy??x?.metaStrategy??"").trim().toUpperCase()===String(label||"").trim().toUpperCase())
+    .sort((a,b)=>new Date(a.closeTime||a.closedAt||a.exitTime||a.timestamp||0)-new Date(b.closeTime||b.closedAt||b.exitTime||b.timestamp||0));
+  if(rows.length<20)return null;
+  const recent=rows.slice(-20),baseline=rows.slice(-80,-20);
+  if(baseline.length<20)return null;
+  const pf=arr=>{let w=0,l=0;for(const x of arr){const p=closedTradePnl(x);if(p>0)w+=p;else if(p<0)l+=Math.abs(p)}return l?w/l:(w?5:0)};
+  const wr=arr=>arr.length?arr.filter(x=>closedTradePnl(x)>0).length/arr.length:0;
+  const rpf=pf(recent),bpf=pf(baseline),rwr=wr(recent),bwr=wr(baseline);
+  const pfDrop=Math.max(0,Math.min(1,(bpf-rpf)/Math.max(bpf,1)));
+  const wrDrop=Math.max(0,Math.min(1,(bwr-rwr)/Math.max(bwr,0.01)));
+  return Math.max(0,Math.min(1,pfDrop*0.6+wrDrop*0.4));
+}
+function metaRecord(x,source){
+  const ev=calcExpectedValueLocal(x);
+  const decay=Number.isFinite(Number(x?.strategyDecayScore))?Number(x.strategyDecayScore):strategyDecay(x?.metaStrategy||x?.strategy);
+  const sizing=Number.isFinite(Number(x?.metaSizingMultiplier))?Number(x.metaSizingMultiplier):null;
+  const tradeAllowed=x?.metaTradeAllowed;
+  const decision=String(x?.noTradeDecision||"").toUpperCase();
+  const noTrade=decision==="NO_TRADE"||decision==="ABSTAIN"||tradeAllowed===false||(ev!=null&&ev<0.10);
+  return {source,strategy:x?.metaStrategy||x?.strategy||"—",score:Number.isFinite(Number(x?.metaStrategyScore))?Number(x.metaStrategyScore):null,ev,decay,sizing,noTrade};
+}
+function metaBadge(meta){
+  if(meta.noTrade)return '<span class="badge red">NO-TRADE</span>';
+  if(meta.ev!=null&&meta.ev<0.10)return '<span class="badge yellow">WEAK EV</span>';
+  return '<span class="badge green">TRADE</span>';
+}
+function metaSources(){
+  const p=state.data.portfolio||{};
+  const signals=Array.isArray(state.data.signals)?state.data.signals:[];
+  const open=Array.isArray(p.openPositions)?p.openPositions:[];
+  const pending=Array.isArray(p.pendingLimitOrders)?p.pendingLimitOrders:[];
+  const closed=Array.isArray(p.closedPositions)?p.closedPositions:[];
+  return [
+    ...signals.map(x=>({...x,__source:"Signal"})),
+    ...open.map(x=>({...x,__source:"Position",timestamp:x.openTime||x.timestamp||x.entryTime})),
+    ...pending.map(x=>({...x,__source:"Pending",timestamp:x.createdAt||x.timestamp})),
+    ...closed.map(x=>({...x,__source:"Closed",timestamp:x.closeTime||x.closedAt||x.exitTime||x.timestamp}))
+  ].filter(x=>x&&x.instId);
+}
+function renderMetaDecision(){
+  const rows=metaSources().sort((a,b)=>new Date(b.timestamp||0)-new Date(a.timestamp||0));
+  const enriched=rows.map(x=>({...x,...metaRecord(x,x.__source)}));
+  const latest=enriched[0];
+  const tradeCount=enriched.filter(x=>!x.noTrade).length;
+  const noTradeCount=enriched.filter(x=>x.noTrade).length;
+  const avgEv=enriched.filter(x=>x.ev!=null).reduce((s,x)=>s+x.ev,0)/(enriched.filter(x=>x.ev!=null).length||1);
+  $("metaMeta").textContent=enriched.length+" observations • "+noTradeCount+" NO-TRADE";
+  $("metaOverviewStatus").textContent=latest?(latest.noTrade?"NO-TRADE":"TRADE"):"No data";
+  $("metaOverviewStatus").className="badge "+(latest?(latest.noTrade?"red":"green"):"");
+  $("metaCards").innerHTML=`<div class="meta-grid">
+    <div class="meta-card"><span class="mini">Meta Strategy</span><b>${esc(latest?.strategy||"—")}</b><span class="mini">sélection dominante</span></div>
+    <div class="meta-card ${latest?.ev!=null?(latest.ev>=0.10?"ok":"warn"):""}"><span class="mini">Expected Value</span><b>${latest?.ev==null?"—":(latest.ev>=0?"+":"")+latest.ev.toFixed(2)+"%"}</b><span class="mini">moyenne: ${avgEv.toFixed(2)}%</span></div>
+    <div class="meta-card ${latest?.decay!=null?(latest.decay>=0.55?"no":latest.decay>=0.25?"warn":"ok"):""}"><span class="mini">Strategy Decay</span><b>${latest?.decay==null?"—":(latest.decay*100).toFixed(0)+"%"}</b><span class="mini">seuil sévère: 55%</span></div>
+    <div class="meta-card ${latest?.noTrade?"no":"ok"}"><span class="mini">No-Trade Intelligence</span><b>${latest?metaBadge(latest):"—"}</b><span class="mini">${noTradeCount} bloqués • ${tradeCount} autorisés</span></div>
+    <div class="meta-card"><span class="mini">Dynamic Position Sizing</span><b>${latest?.sizing==null?"—":latest.sizing.toFixed(2)+"×"}</b><span class="mini">min 0.35× • max 1.25×</span></div>
+  </div>`;
+  $("metaOverview").innerHTML=`<div class="meta-grid">
+    <div class="meta-card"><span class="mini">Meta Strategy</span><b>${esc(latest?.strategy||"—")}</b></div>
+    <div class="meta-card"><span class="mini">EV</span><b>${latest?.ev==null?"—":(latest.ev>=0?"+":"")+latest.ev.toFixed(2)+"%"}</b></div>
+    <div class="meta-card"><span class="mini">Decay</span><b>${latest?.decay==null?"—":(latest.decay*100).toFixed(0)+"%"}</b></div>
+    <div class="meta-card"><span class="mini">No-Trade</span><b>${latest?metaBadge(latest):"—"}</b></div>
+    <div class="meta-card"><span class="mini">Sizing</span><b>${latest?.sizing==null?"—":latest.sizing.toFixed(2)+"×"}</b></div>
+  </div>`;
+  $("metaTable").innerHTML=enriched.slice(0,100).map(x=>`<tr><td>${timefmt(x.timestamp)}</td><td><b>${esc(x.instId)}</b></td><td>${esc(x.source)}</td><td><span class="badge">${esc(x.strategy)}</span></td><td>${x.score==null?"—":num(x.score,1)}</td><td class="${x.ev==null?"":x.ev>=0?"good":"bad"}">${x.ev==null?"—":(x.ev>=0?"+":"")+x.ev.toFixed(2)+"%"}</td><td>${pct(x.probability)}</td><td>${x.decay==null?"—":(x.decay*100).toFixed(0)+"%"}</td><td>${metaBadge(x)}</td><td>${x.sizing==null?"—":x.sizing.toFixed(2)+"×"}</td></tr>`).join("")||'<tr><td colspan="10" class="empty">Aucune donnée Meta disponible</td></tr>';
+}
 function renderOverview(){  
   const p=state.data.portfolio||{}, e=portfolioEquity(p)||{cash:0,pos:0,equity:0};  
   const initial=Number(p.initialCapital)||0,pnl=e.equity-initial;  
@@ -434,19 +522,24 @@ function renderPositions(){
     const cur=Number.isFinite(live)?live:fallback;
     const pnl=livePositionPnl(x);
     const liveTag=Number.isFinite(live)?'<span class="badge green" style="margin-left:5px">LIVE</span>':'';
-    return `<tr><td><b>${esc(x.instId)}</b></td><td>${price(entry)}</td><td>${price(cur)} ${liveTag}</td><td class="${pnl>=0?'good':'bad'}">${pnl>=0?'+':''}${money(pnl)}</td><td>${price(x.target)}</td><td>${price(x.stop)}</td><td><span class="badge">${esc(x.strategy||"—")}</span></td><td>${esc(x.entryOrderType||"—")}</td></tr>`
-  }).join(""):"<tr><td colspan='8' class='empty'>No open positions</td></tr>";
+    const meta=metaRecord(x,"Position");
+    return `<tr><td><b>${esc(x.instId)}</b></td><td>${price(entry)}</td><td>${price(cur)} ${liveTag}</td><td class="${pnl>=0?'good':'bad'}">${pnl>=0?'+':''}${money(pnl)}</td><td>${price(x.target)}</td><td>${price(x.stop)}</td><td><span class="badge">${esc(x.strategy||"—")}</span></td><td><span class="badge ${meta.noTrade==="NO_TRADE"?"red":"green"}">${esc(meta.strategy||"—")}</span></td><td class="${meta.ev>=0?"good":"bad"}">${meta.ev==null?"—":(meta.ev>=0?"+":"")+meta.ev.toFixed(2)+"%"}</td><td>${meta.decay==null?"—":(meta.decay*100).toFixed(0)+"%"}</td><td>${meta.sizing==null?"—":meta.sizing.toFixed(2)+"×"}</td><td>${esc(x.entryOrderType||"—")}</td></tr>`
+  }).join(""):"<tr><td colspan='12' class='empty'>No open positions</td></tr>";
   $("pendingTable").innerHTML=po.length?po.map(x=>{
     const live=Number(state.okxPrices[String(x.instId||"").toUpperCase()]);
     const market=Number.isFinite(live)?live:Number(x.marketPriceAtOrder);
     const liveTag=Number.isFinite(live)?'<span class="badge green" style="margin-left:5px">LIVE</span>':'';
-    return `<tr><td><b>${esc(x.instId)}</b></td><td>${price(x.limitPrice)}</td><td>${price(market)} ${liveTag}</td><td>${money(x.reservedUsd??x.allocatedUsd)}</td><td>${price(x.target)}</td><td>${price(x.stop)}</td><td><span class="badge">${esc(x.strategy||"—")}</span></td></tr>`;
-  }).join(""):"<tr><td colspan='7' class='empty'>No pending orders</td></tr>";
+    const meta=metaRecord(x,"Pending");
+    return `<tr><td><b>${esc(x.instId)}</b></td><td>${price(x.limitPrice)}</td><td>${price(market)} ${liveTag}</td><td>${money(x.reservedUsd??x.allocatedUsd)}</td><td>${price(x.target)}</td><td>${price(x.stop)}</td><td><span class="badge">${esc(x.strategy||"—")}</span></td><td><span class="badge">${esc(meta.strategy||"—")}</span></td><td class="${meta.ev>=0?"good":"bad"}">${meta.ev==null?"—":(meta.ev>=0?"+":"")+meta.ev.toFixed(2)+"%"}</td><td>${meta.decay==null?"—":(meta.decay*100).toFixed(0)+"%"}</td><td>${meta.sizing==null?"—":meta.sizing.toFixed(2)+"×"}</td></tr>`;
+  }).join(""):"<tr><td colspan='11' class='empty'>No pending orders</td></tr>";
 }  
 
 function renderSignals(){  
   const all=[...(state.data.signals||[])].sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));const n=Number($("signalLimit").value)||50;  
-  $("signalTable").innerHTML=all.slice(0,n).map(s=>`<tr><td>${timefmt(s.timestamp)}</td><td><b>${esc(s.instId)}</b></td><td><span class="badge ${s.signal==="STRONG"?"green":s.signal==="WATCH"?"yellow":""}">${esc(s.signal)}</span></td><td>${price(s.price)}</td><td>${num(s.score,1)}</td><td>${pct(s.probability)}</td><td>${num(s.btcScore,1)}</td><td>${num(s.mlScore,1)}</td><td>${num(s.liquidityScore,1)}</td><td>${esc(s.dynamicMarketRegime||"—")}</td><td>${price(s.target)}</td><td>${price(s.stop)}</td><td>${num(s.rr,2)}</td></tr>`).join("")||"<tr><td colspan='13' class='empty'>No signal history</td></tr>";  
+  $("signalTable").innerHTML=all.slice(0,n).map(s=>{
+    const meta=metaRecord(s,"Signal");
+    return `<tr><td>${timefmt(s.timestamp)}</td><td><b>${esc(s.instId)}</b></td><td><span class="badge ${s.signal==="STRONG"?"green":s.signal==="WATCH"?"yellow":""}">${esc(s.signal)}</span></td><td>${price(s.price)}</td><td>${num(s.score,1)}</td><td>${pct(s.probability)}</td><td>${num(s.btcScore,1)}</td><td>${num(s.mlScore,1)}</td><td>${num(s.liquidityScore,1)}</td><td>${esc(s.dynamicMarketRegime||"—")}</td><td><span class="badge">${esc(meta.strategy||"—")}</span></td><td class="${meta.ev>=0?"good":"bad"}">${meta.ev==null?"—":(meta.ev>=0?"+":"")+meta.ev.toFixed(2)+"%"}</td><td>${meta.decay==null?"—":(meta.decay*100).toFixed(0)+"%"}</td><td>${meta.sizing==null?"—":meta.sizing.toFixed(2)+"×"}</td><td>${price(s.target)}</td><td>${price(s.stop)}</td><td>${num(s.rr,2)}</td></tr>`
+  }).join("")||"<tr><td colspan='17' class='empty'>No signal history</td></tr>";  
 }  
 
 function renderStrategies(){  
@@ -470,7 +563,8 @@ function renderStrategies(){
       return `<tr>${rank}<td><b>${esc(name)}</b></td><td><span class="badge yellow">Pas encore de données</span></td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>`;
     }
     const t=Number(x.trades)||0,w=Number(x.wins)||0,l=Number(x.losses)||0;
-    return `<tr>${rank}<td><b>${esc(name)}</b></td><td><span class="badge green">Données disponibles</span></td><td>${t}</td><td>${w}</td><td>${l}</td><td>${t?pct(w/t*100):"—"}</td><td class="${(x.pnlSum||0)>=0?'good':'bad'}">${money(x.pnlSum)}</td><td>${num(x.weight,3)}</td><td>${num(x.slHits,0)}</td><td>${num(x.tpHits,0)}</td><td>${num(x.timeHits,0)}</td><td>${num(x.targetRR,2)}</td></tr>`;
+    const decay=strategyDecay(name);
+    return `<tr>${rank}<td><b>${esc(name)}</b></td><td><span class="badge green">Données disponibles</span></td><td>${t}</td><td>${w}</td><td>${l}</td><td>${t?pct(w/t*100):"—"}</td><td class="${(x.pnlSum||0)>=0?'good':'bad'}">${money(x.pnlSum)}</td><td>${num(x.weight,3)}</td><td>${decay==null?"—":(decay*100).toFixed(0)+"%"}</td><td>${num(x.slHits,0)}</td><td>${num(x.tpHits,0)}</td><td>${num(x.timeHits,0)}</td><td>${num(x.targetRR,2)}</td></tr>`;
   }).join("");
   
   const d=state.data.discovery||{}, rows=Array.isArray(d.candidates)?d.candidates:[];  
@@ -542,7 +636,7 @@ function renderBacktest(){
 function openModal(){$("modal").classList.add("show")}  
 function closeModal(){$("modal").classList.remove("show")}  
 
-function showTab(id){const target=document.getElementById(id)||document.getElementById("overview");document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x.dataset.tab===target.id));document.querySelectorAll(".tabpage").forEach(x=>x.style.display=x.id===target.id?"block":"none");if(target.id==="monthly")renderMonthlyPnL();if(target.id==="map")window.scrollTo({top:0,behavior:"smooth"})}
+function showTab(id){const target=document.getElementById(id)||document.getElementById("overview");document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x.dataset.tab===target.id));document.querySelectorAll(".tabpage").forEach(x=>x.style.display=x.id===target.id?"block":"none");if(target.id==="monthly")renderMonthlyPnL();if(target.id==="meta")renderMetaDecision();if(target.id==="map")window.scrollTo({top:0,behavior:"smooth"})}
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{showTab(b.dataset.tab);history.replaceState(null,"",`#${b.dataset.tab}`)});
 window.addEventListener("hashchange",()=>showTab(location.hash.slice(1)||"overview"));  
 
