@@ -743,6 +743,68 @@ function renderMetaDecision(){
   </div>`;
   $("metaTable").innerHTML=enriched.slice(0,100).map(x=>`<tr><td>${timefmt(x.timestamp)}</td><td><b>${esc(x.instId)}</b></td><td>${esc(x.source)}</td><td><span class="badge">${esc(x.strategy)}</span></td><td>${x.score==null?"—":num(x.score,1)}</td><td class="${x.ev==null?"":x.ev>=0?"good":"bad"}">${x.ev==null?"—":(x.ev>=0?"+":"")+x.ev.toFixed(2)+"%"}</td><td>${pct(x.probability)}</td><td>${x.decay==null?"—":(x.decay*100).toFixed(0)+"%"}</td><td>${metaBadge(x)}</td><td>${x.sizing==null?"—":x.sizing.toFixed(2)+"×"}</td></tr>`).join("")||'<tr><td colspan="10" class="empty">Aucune donnée Meta disponible</td></tr>';
 }
+
+function analyticsTradeTime(t){
+ const raw=t.closeTime||t.timestamp||t.exitTime||t.closedAt||t.updatedAt;
+ const d=raw?new Date(raw):null;return d&&Number.isFinite(d.getTime())?d:null;
+}
+function analyticsTradePnl(t){
+ const n=Number(t.realizedPnl??t.profitUsd??t.pnl??t.profit??t.pnlUsd??0);
+ return Number.isFinite(n)?n:0;
+}
+function analyticsDayKey(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function analyticsDrawBars(canvas,values,labels,kind){
+ if(!canvas)return;
+ const w=canvas.clientWidth||600,h=canvas.clientHeight||220,d=window.devicePixelRatio||1;
+ canvas.width=Math.max(1,Math.floor(w*d));canvas.height=Math.max(1,Math.floor(h*d));
+ const ctx=canvas.getContext("2d");ctx.setTransform(d,0,0,d,0,0);ctx.clearRect(0,0,w,h);
+ const pad={l:42,r:8,t:14,b:28},cw=w-pad.l-pad.r,ch=h-pad.t-pad.b;
+ const nums=values.map(x=>Number(x)||0);if(!nums.length){ctx.fillStyle="#8fa4b5";ctx.fillText("Pas encore de données",12,24);return}
+ let min=Math.min(...nums),max=Math.max(...nums);if(kind==="bar"){min=Math.min(0,min);max=Math.max(0,max)}if(max===min){max+=1;min-=1}
+ const y=v=>pad.t+(max-v)/(max-min)*ch;
+ ctx.font="10px system-ui";ctx.strokeStyle="#203847";ctx.fillStyle="#8fa4b5";ctx.lineWidth=1;
+ for(let i=0;i<4;i++){const val=max-(max-min)*i/3,yy=y(val);ctx.beginPath();ctx.moveTo(pad.l,yy);ctx.lineTo(w-pad.r,yy);ctx.stroke();ctx.fillText(num(val,0),2,yy+3)}
+ if(kind==="bar"){
+  const slot=cw/nums.length,bw=Math.max(2,Math.min(18,slot*.64)),zero=y(0);
+  nums.forEach((v,i)=>{const x=pad.l+i*slot+(slot-bw)/2,yy=y(v);ctx.fillStyle=v>=0?"#20c997":"#ff5368";ctx.fillRect(x,Math.min(yy,zero),bw,Math.max(1,Math.abs(zero-yy)))});
+ }else{
+  ctx.beginPath();nums.forEach((v,i)=>{const x=pad.l+(nums.length<2?cw/2:i*cw/(nums.length-1)),yy=y(v);i?ctx.lineTo(x,yy):ctx.moveTo(x,yy)});ctx.strokeStyle="#54e0c0";ctx.lineWidth=2;ctx.stroke();
+ }
+ const picks=[0,Math.floor((labels.length-1)/2),labels.length-1];[...new Set(picks)].forEach(i=>{if(i>=0&&labels[i]!=null){const x=pad.l+(labels.length<2?cw/2:i*cw/(labels.length-1));ctx.fillStyle="#8fa4b5";ctx.fillText(String(labels[i]).slice(5),Math.max(pad.l,x-18),h-7)}});
+}
+function renderPortfolioAnalytics(){
+ const p=state.data.portfolio||{},closed=Array.isArray(p.closedPositions)?p.closedPositions:[];
+ const daily=new Map(),assetMap=new Map();let dated=0;
+ closed.forEach(t=>{const dt=analyticsTradeTime(t);if(!dt)return;dated++;const key=analyticsDayKey(dt),v=analyticsTradePnl(t);daily.set(key,(daily.get(key)||0)+v);const asset=String(t.instId||t.symbol||t.instrument||"Inconnu").toUpperCase();if(!assetMap.has(asset))assetMap.set(asset,{count:0,pnl:0});const a=assetMap.get(asset);a.count++;a.pnl+=v});
+ const sortedDays=[...daily.keys()].sort();let cumulative=Number(p.initialCapital)||0;const eq=[];sortedDays.forEach(k=>{cumulative+=daily.get(k);eq.push(cumulative)});
+ $("analyticsUpdated").textContent=state.opsLastRefreshAt?"Données du dépôt • "+timefmt(state.opsLastRefreshAt):"En attente des données";
+ $("equityHistoryMeta").textContent=dated+" trades datés • reconstruit";
+ analyticsDrawBars($("portfolioEquityHistory"),eq,sortedDays,"line");
+ const allocation=new Map(),liveAvailable=Object.keys(state.okxPrices||{}).length>0;
+ (p.openPositions||[]).forEach(x=>{const inst=String(x.instId||"Inconnu").toUpperCase(),px=Number(state.okxPrices[inst]),units=Number(x.units),value=Number.isFinite(px)&&Number.isFinite(units)?Math.abs(px*units):Number(x.allocatedUsd)||0;allocation.set(inst,(allocation.get(inst)||0)+Math.max(0,value))});
+ (p.pendingLimitOrders||[]).forEach(x=>{const inst=String(x.instId||"Inconnu").toUpperCase();allocation.set(inst,(allocation.get(inst)||0)+Math.max(0,Number(x.reservedUsd??x.allocatedUsd)||0))});
+ if(Number(p.cash)>0)allocation.set("USDT / Cash",(allocation.get("USDT / Cash")||0)+Number(p.cash));
+ const entries=[...allocation.entries()].filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]),total=entries.reduce((a,x)=>a+x[1],0);
+ const ac=$("allocationChart");if(ac){const w=ac.clientWidth||220,h=ac.clientHeight||200,d=window.devicePixelRatio||1;ac.width=w*d;ac.height=h*d;const cx=ac.getContext("2d");cx.setTransform(d,0,0,d,0,0);cx.clearRect(0,0,w,h);const radius=Math.max(24,Math.min(w,h)*.36),colors=["#18b66a","#1677ff","#f5a524","#9b6bff","#20c9c0","#ff6478","#8ea6bb"];let start=-Math.PI/2;entries.forEach((e,i)=>{const end=start+(total?e[1]/total:0)*Math.PI*2;cx.beginPath();cx.arc(w/2,h/2,radius,start,end);cx.strokeStyle=colors[i%colors.length];cx.lineWidth=Math.max(14,radius*.36);cx.stroke();start=end});cx.fillStyle="#f3f7fb";cx.textAlign="center";cx.font="bold 13px system-ui";cx.fillText(money(total),w/2,h/2+4)}}
+ $("allocationMeta").textContent=entries.length+" lignes • "+(liveAvailable?"prix OKX disponibles":"valeurs enregistrées");
+ $("allocationLegend").innerHTML=entries.length?entries.slice(0,8).map((e,i)=>{const colors=["#18b66a","#1677ff","#f5a524","#9b6bff","#20c9c0","#ff6478","#8ea6bb"];return '<div class="allocation-item"><i class="allocation-dot" style="background:'+colors[i%colors.length]+'"></i><span>'+esc(e[0])+'</span><b>'+money(e[1])+' <small class="mini">'+(total?((e[1]/total)*100).toFixed(1):"0.0")+'%</small></b></div>'}).join(""):"<div class='empty'>Aucune position ni réserve enregistrée</div>";
+ const lastKeys=sortedDays.slice(-30);analyticsDrawBars($("dailyPnlChart"),lastKeys.map(k=>daily.get(k)),lastKeys,"bar");$("dailyPnlMeta").textContent="P&L réalisé • "+dated+" trades datés";
+ $("assetPnlTable").innerHTML=[...assetMap.entries()].sort((a,b)=>b[1].pnl-a[1].pnl).slice(0,10).map(([name,x])=>'<tr><td><b>'+esc(name)+'</b></td><td>'+x.count+'</td><td class="'+(x.pnl>=0?"good":"bad")+'">'+(x.pnl>0?"+":"")+money(x.pnl)+'</td></tr>').join("")||"<tr><td colspan='3' class='empty'>Aucune transaction clôturée datée</td></tr>";
+ renderDailyPnlCalendar(daily);
+}
+function renderDailyPnlCalendar(daily){
+ const now=new Date(),month=new Date(now.getFullYear(),now.getMonth()+pnlCalendarOffset,1),y=month.getFullYear(),m=month.getMonth();
+ $("pnlCalendarMonth").textContent=month.toLocaleDateString("fr-FR",{month:"long",year:"numeric"});
+ const names=["Lun.","Mar.","Mer.","Jeu.","Ven.","Sam.","Dim."],offset=(month.getDay()+6)%7,days=new Date(y,m+1,0).getDate();
+ let html=names.map(x=>'<div class="pnl-weekday">'+x+'</div>').join("");
+ for(let i=0;i<offset;i++)html+='<div></div>';
+ for(let day=1;day<=days;day++){const date=new Date(y,m,day),key=analyticsDayKey(date),has=daily.has(key),v=daily.get(key)||0,cls=!has?"":v>=0?"pos":"neg";html+='<button type="button" class="pnl-day '+cls+(pnlSelectedDate===key?" selected":"")+'" data-pnl-date="'+key+'">'+day+(has?'<span class="day-pnl">'+(v>0?"+":"")+num(v,1)+'</span>':'<span class="day-pnl">—</span>')+'</button>'}
+ $("dailyPnlCalendar").innerHTML=html;
+ $("dailyPnlCalendar").querySelectorAll("[data-pnl-date]").forEach(el=>el.addEventListener("click",()=>{pnlSelectedDate=el.dataset.pnlDate;const val=daily.get(pnlSelectedDate);$("dailyPnlSelected").textContent=pnlSelectedDate+" • "+(val==null?"aucun trade clôturé enregistré":(val>0?"+":"")+money(val)+" USD réalisé");renderDailyPnlCalendar(daily)}));
+ const val=pnlSelectedDate?daily.get(pnlSelectedDate):null;$("dailyPnlSelected").textContent=pnlSelectedDate?pnlSelectedDate+" • "+(val==null?"aucun trade clôturé enregistré":(val>0?"+":"")+money(val)+" USD réalisé"):"Sélectionnez une journée.";
+ $("pnlPrevMonth").onclick=()=>{pnlCalendarOffset--;renderDailyPnlCalendar(daily)};$("pnlNextMonth").onclick=()=>{pnlCalendarOffset++;renderDailyPnlCalendar(daily)};
+}
+
 function renderOverview(){  
   const p=state.data.portfolio||{}, e=portfolioEquity(p)||{cash:0,pos:0,equity:0};  
   const initial=Number(p.initialCapital)||0,pnl=e.equity-initial;  
