@@ -1148,13 +1148,16 @@ if(state.cfg.token){
         if(!owner||!repo||!token){showMessage("Remplissez Owner, Repository et GitHub Personal Access Token.");return;}
         save.disabled=true;save.textContent="Connexion en cours…";
         try{
-          var resp=await fetch("https://api.github.com/repos/"+encodeURIComponent(owner)+"/"+encodeURIComponent(repo)+"/contents/portfolio.json?ref="+encodeURIComponent(branch),{
-            headers:{"Accept":"application/vnd.github+json","Authorization":"Bearer "+token}
-          });
+          var apiRoot="https://api.github.com/repos/"+encodeURIComponent(owner)+"/"+encodeURIComponent(repo)+"/contents?ref="+encodeURIComponent(branch);
+          var resp=await fetch(apiRoot,{headers:{"Accept":"application/vnd.github+json","Authorization":"Bearer "+token}});
           if(!resp.ok){
-            var msg=resp.status===401?"Jeton invalide ou expiré (HTTP 401).":resp.status===403?"Accès refusé (HTTP 403) : le jeton doit avoir Contents: Read sur le dépôt privé.":resp.status===404?"Fichier portfolio.json ou branche introuvable, ou le jeton n'a pas accès au contenu (HTTP 404).":"Lecture du fichier portfolio.json impossible (GitHub HTTP "+resp.status+").";
+            var msg=resp.status===401?"Jeton invalide ou expiré (HTTP 401).":resp.status===403?"Accès refusé (HTTP 403) : le jeton doit avoir Contents: Read sur le dépôt privé.":resp.status===404?"Dépôt ou branche introuvable, ou le jeton n'a pas accès au dépôt (HTTP 404).":"Lecture du dépôt impossible (GitHub HTTP "+resp.status+").";
             showMessage(msg);return;
           }
+          var rootFiles=await resp.json();
+          if(!Array.isArray(rootFiles)){showMessage("GitHub a renvoyé un format inattendu pour les fichiers du dépôt.");return;}
+          var portfolioFile=rootFiles.find(function(f){return f.type==="file"&&/^portfolio(?:_\\d+)?\\.json$/i.test(f.name);});
+          if(!portfolioFile){showMessage("Connexion GitHub réussie, mais aucun fichier portfolio*.json n'a été trouvé dans cette branche.");return;}
           var cfg={owner:owner,repo:repo,branch:branch,token:token};
           try{sessionStorage.setItem("ziedDashCfg",JSON.stringify(cfg));}catch(e){}
           try{if(remember)localStorage.setItem("ziedDashCfg",JSON.stringify(cfg));else localStorage.removeItem("ziedDashCfg");}catch(e){}
