@@ -66,33 +66,21 @@
 <div id="modal" class="modal"><div class="modalbox"><h2 style="margin-top:0">Connexion GitHub</h2><div class="hint" style="margin-bottom:14px">La connexion sert uniquement à lire l’état du bot. Aucun ordre de trading n’est exécuté depuis le tableau de bord.</div><div class="form"><div class="field"><label>Owner</label><input id="owner" value="zbenslimen991-alt"></div><div class="field"><label>Repository</label><input id="repo" value="Zied-main"></div><div class="field"><label>Branch</label><input id="branch" value="main"></div><div class="field"><label>GitHub Personal Access Token</label><input id="token" type="password" autocomplete="off" placeholder="github_pat_..."></div><label class="check"><input id="remember" type="checkbox"> Mémoriser le jeton sur cet appareil</label><div class="hint">Dépôt par défaut : <b>zbenslimen991-alt/Zied-main</b></div><div class="actions" style="justify-content:flex-end;margin-top:5px"><button class="btn" id="closeModal">Annuler</button><button class="btn primary" id="saveConnect">Enregistrer & connecter</button></div></div></div></div><div id="toast" class="toast"></div>
 
 <main id="advanced" class="tabpage" style="display:none">
-<section class="panel" style="margin-bottom:14px">
- <div class="panelhead"><div><h2>Intelligence avancée • Risk Lab</h2><span class="mini">Modules de validation, robustesse et gestion du risque</span></div><span class="badge yellow">Diagnostic • intégration moteur à valider</span></div>
- <p class="hint">Cette page distingue les modules de diagnostic des résultats réellement calculés. Aucun score ou rendement n’est inventé : les cartes affichent « Données requises » tant que le moteur ne fournit pas de mesures vérifiées.</p>
-</section>
+<section class="panel" style="margin-bottom:14px"><div class="panelhead"><div><h2>Intelligence avancée • Risk Lab</h2><span class="mini">Calculs exécutés depuis les fichiers réellement chargés</span></div><span id="advStatus" class="badge yellow">En attente des données</span></div><p class="hint">Les indicateurs se recalculent à chaque actualisation. Les estimations locales sont signalées ; les contrôles impossibles sans données dédiées restent indisponibles.</p><div id="advUpdated" class="mini">Dernier calcul : —</div></section>
 <div class="cards">
- <div class="card"><div class="label">Backtest Integrity</div><div class="value warn">Données requises</div><div class="mini">Fuites temporelles, doublons, OHLCV, cohérence des coûts.</div></div>
- <div class="card"><div class="label">Walk-Forward Validation</div><div class="value warn">À valider</div><div class="mini">Séparation chronologique entraînement / validation / test.</div></div>
- <div class="card"><div class="label">Strategy Reliability</div><div class="value warn">Non calculé</div><div class="mini">Score basé sur échantillon, stabilité et performance hors échantillon.</div></div>
- <div class="card"><div class="label">Market Regime</div><div class="value">À connecter</div><div class="mini">Tendance haussière, baissière, range et volatilité élevée.</div></div>
- <div class="card"><div class="label">Portfolio Risk</div><div class="value">À connecter</div><div class="mini">Exposition globale, corrélations et concentration par actif.</div></div>
- <div class="card"><div class="label">Performance Drift</div><div class="value">À connecter</div><div class="mini">Détection de dégradation par rapport aux attentes historiques.</div></div>
- <div class="card"><div class="label">Monte Carlo Stress</div><div class="value">Non exécuté</div><div class="mini">Scénarios de séquences de trades et distribution du drawdown.</div></div>
- <div class="card"><div class="label">Execution Costs</div><div class="value">À valider</div><div class="mini">Frais, spread, slippage et hypothèses de liquidité.</div></div>
- <div class="card"><div class="label">Strategy Rotation</div><div class="value">À connecter</div><div class="mini">Comparaison stable des stratégies sans rotation excessive.</div></div>
- <div class="card"><div class="label">Decision Audit Log</div><div class="value">À connecter</div><div class="mini">Trace horodatée du signal, EV, sizing, régime et motif Trade / No-Trade.</div></div>
+<div class="card"><div class="label">Backtest Integrity</div><div id="advIntegrity" class="value warn">—</div><div id="advIntegrityNote" class="mini"></div></div>
+<div class="card"><div class="label">Walk-Forward</div><div id="advWalk" class="value warn">—</div><div id="advWalkNote" class="mini"></div></div>
+<div class="card"><div class="label">Strategy Reliability</div><div id="advReliability" class="value">—</div><div id="advReliabilityNote" class="mini"></div></div>
+<div class="card"><div class="label">Market Regime</div><div id="advRegime" class="value">—</div><div id="advRegimeNote" class="mini"></div></div>
+<div class="card"><div class="label">Portfolio Risk</div><div id="advRisk" class="value">—</div><div id="advRiskNote" class="mini"></div></div>
+<div class="card"><div class="label">Performance Drift</div><div id="advDrift" class="value">—</div><div id="advDriftNote" class="mini"></div></div>
+<div class="card"><div class="label">Monte Carlo Stress</div><div id="advMonte" class="value">—</div><div id="advMonteNote" class="mini"></div></div>
+<div class="card"><div class="label">Execution Costs</div><div id="advCosts" class="value">—</div><div id="advCostsNote" class="mini"></div></div>
+<div class="card"><div class="label">Strategy Rotation</div><div id="advRotation" class="value">—</div><div id="advRotationNote" class="mini"></div></div>
+<div class="card"><div class="label">Decision Audit Log</div><div id="advAudit" class="value">—</div><div id="advAuditNote" class="mini"></div></div>
 </div>
-<section class="panel" style="margin-bottom:14px">
- <h2>Ordre recommandé d’activation</h2>
- <div class="tablewrap"><table><thead><tr><th>Priorité</th><th>Module</th><th>Vérification avant activation</th><th>Statut</th></tr></thead><tbody>
- <tr><td>1</td><td>Backtest Integrity</td><td>Absence de look-ahead bias, données et coûts contrôlés</td><td><span class="badge yellow">À tester</span></td></tr>
- <tr><td>2</td><td>Walk-Forward</td><td>Résultats chronologiques hors échantillon</td><td><span class="badge yellow">À tester</span></td></tr>
- <tr><td>3</td><td>Reliability Score</td><td>Calcul explicable avec seuil minimal de trades</td><td><span class="badge yellow">À connecter</span></td></tr>
- <tr><td>4</td><td>Portfolio Risk</td><td>Limites globales testées avant sizing dynamique</td><td><span class="badge yellow">À connecter</span></td></tr>
- <tr><td>5</td><td>Drift, Monte Carlo, Rotation</td><td>Tests unitaires et validation sur données réelles</td><td><span class="badge yellow">À tester</span></td></tr>
- </tbody></table></div>
- <div class="meta-note">Important : cette interface est une vue de suivi. Les indicateurs ne seront marqués comme actifs qu’après branchement au moteur et validation par tests ; ne pas utiliser ces libellés comme autorisation de trading réel.</div>
-</section>
+<div class="grid layout"><section class="panel"><div class="panelhead"><h2>Fiabilité des stratégies</h2><span id="advStrategyMeta" class="mini">—</span></div><div class="tablewrap"><table><thead><tr><th>Stratégie</th><th>Trades</th><th>Win rate</th><th>P&amp;L</th><th>Profit factor</th><th>Fiabilité proxy</th><th>Statut</th></tr></thead><tbody id="advStrategyTable"></tbody></table></div></section><section class="panel"><div class="panelhead"><h2>Risque & concentration</h2><span id="advRiskMeta" class="mini">—</span></div><div id="advRiskTable" class="empty">Données portefeuille en attente.</div></section></div>
+<section class="panel" style="margin-top:14px"><div class="panelhead"><h2>Decision Audit Log • derniers signaux</h2><span id="advAuditMeta" class="mini">—</span></div><div class="tablewrap"><table><thead><tr><th>Date</th><th>Actif</th><th>Signal</th><th>Score</th><th>Probabilité</th><th>Régime</th><th>Stratégie</th><th>EV estimée</th><th>Décision</th></tr></thead><tbody id="advAuditTable"></tbody></table></div><div class="meta-note">Le journal reprend les signaux existants. Il ne prétend pas enregistrer les décisions internes absentes des fichiers source.</div></section>
 </main>
 
 <script>  
@@ -400,7 +388,7 @@ function calculatePeriodicPnL(p) {
   return { pnlDay, pnlWeek, pnlYear };
 }
 
-function renderAll(){renderOverview();renderPositions();renderSignals();renderStrategies();renderAI();renderMetaDecision();renderBacktest();renderMonthlyYearOptions();renderMonthlyPnL()}  
+function renderAll(){renderOverview();renderPositions();renderSignals();renderStrategies();renderAI();renderMetaDecision();renderBacktest();renderMonthlyYearOptions();renderMonthlyPnL();renderAdvanced()}  
 
 function normalizeProbability(v){
   const n=Number(v);
@@ -664,6 +652,34 @@ function renderBacktest(){
   }).join("")||"<tr><td colspan='7' class='empty'>No backtest data</td></tr>";  
 }  
 
+function advSet(id,value,cls){const el=$(id);if(el){el.textContent=value;el.className="value"+(cls?" "+cls:"")}}
+function advPnl(x){return Number(x&& (x.realizedPnl??x.pnl??x.profit??x.profitUsd) || 0)||0}
+function advDate(x){return x&&(x.closeTime??x.closedAt??x.exitTime??x.timestamp??x.time??x.date)||null}
+function advFinite(v){return v!==null&&v!==undefined&&v!==""&&Number.isFinite(Number(v))}
+function renderAdvanced(){
+ const p=state.data.portfolio||{},closed=Array.isArray(p.closedPositions)?p.closedPositions:[],signals=Array.isArray(state.data.signals)?state.data.signals:[],bt=state.data.backtest||{},stats=state.data.strategies||{};
+ const pe=portfolioEquity(p);const equity=pe&&Number.isFinite(pe.equity)?pe.equity:(Number(p.initialCapital)||0);
+ const allocated=(p.openPositions||[]).reduce((a,x)=>a+(Number(x.allocatedUsd)||0),0)+(p.pendingLimitOrders||[]).reduce((a,x)=>a+(Number(x.reservedUsd??x.allocatedUsd)||0),0);
+ const clean=closed.filter(x=>advDate(x)&&Number.isFinite(new Date(advDate(x)).getTime())&&advFinite(x.realizedPnl??x.pnl??x.profit??x.profitUsd));const missing=closed.length-clean.length;
+ advSet("advIntegrity",closed.length?(clean.length+"/"+closed.length+" valides"):"Données requises",missing?"warn":closed.length?"good":"warn");$("advIntegrityNote").textContent=closed.length?(missing+" enregistrement(s) avec date/P&L invalide. Contrôle OHLCV/look-ahead non exposé par les données chargées."):"Aucune transaction clôturée chargée."; 
+ const btRows=Object.values(bt).filter(x=>x&&typeof x==="object");const wf=btRows.find(x=>x.walkForward||x.walk_forward||x.oos||x.outOfSample||x.validation);
+ if(wf){const o=wf.walkForward||wf.walk_forward||wf.oos||wf.outOfSample||wf.validation;advSet("advWalk","Résultat trouvé","good");$("advWalkNote").textContent="Objet de validation présent : "+JSON.stringify(o).slice(0,130)}else{advSet("advWalk","Indisponible","warn");$("advWalkNote").textContent="Aucune métrique OOS/WFA identifiable dans les résultats chargés."}
+ const norm={};Object.entries(stats).forEach(([k,v])=>{if(v&&typeof v==="object")norm[k.trim().toUpperCase()]=v});
+ const stratRows=STRATEGY_NAMES.map(name=>{const x=norm[name];if(!x)return null;const n=Number(x.trades??x.totalTrades)||0,w=Number(x.wins)||0,pnl=Number(x.pnlSum??x.pnl)||0,pf=Number(x.profitFactor);const wr=n?w/n:0,sample=Math.min(1,n/50),pfScore=Number.isFinite(pf)?Math.max(0,Math.min(1,pf/2)):Math.max(0,Math.min(1,pnl>0?.65:.25));return{name,n,w,pnl,pf,wr,score:Math.round(100*(.45*wr+.35*pfScore+.20*sample))}}).filter(Boolean).sort((a,b)=>b.score-a.score);
+ const enough=stratRows.filter(x=>x.n>0),avg=enough.length?Math.round(enough.reduce((a,x)=>a+x.score,0)/enough.length):null;advSet("advReliability",avg===null?"Non calculé":avg+"/100",avg===null?"warn":avg>=65?"good":avg<45?"bad":"warn");$("advReliabilityNote").textContent=enough.length+" stratégies avec trades; score proxy fondé sur win rate, profit factor disponible et taille d’échantillon, sans validation OOS."; 
+ const regimes={};signals.slice(-200).forEach(x=>{const r=String(x.dynamicMarketRegime||x.marketRegime||"Inconnu");regimes[r]=(regimes[r]||0)+1});const topRegime=Object.entries(regimes).sort((a,b)=>b[1]-a[1])[0];advSet("advRegime",topRegime?topRegime[0]:"Indisponible",topRegime?"":"warn");$("advRegimeNote").textContent=topRegime?(topRegime[1]+" / "+Math.min(200,signals.length)+" signaux; régime historique dominant, pas un flux de marché temps réel."):"Aucun régime dans l’historique des signaux."; 
+ const exposure=equity>0?allocated/equity*100:null;advSet("advRisk",exposure===null?"Indisponible":exposure.toFixed(1)+"%",exposure===null?"warn":exposure>80?"bad":exposure>50?"warn":"good");$("advRiskNote").textContent="Allocation + ordres réservés : "+money(allocated)+"; equity de référence : "+money(equity)+". ";
+ const dated=clean.slice().sort((a,b)=>new Date(advDate(a))-new Date(advDate(b))).map(advPnl);
+ if(dated.length>=40){const old=dated.slice(-40,-20),recent=dated.slice(-20),mean=a=>a.reduce((s,v)=>s+v,0)/a.length,d=mean(recent)-mean(old);advSet("advDrift",d>=0?"Stable / amélioration":"Dégradation",d<0?"bad":"good");$("advDriftNote").textContent="P&L moyen/trade récent "+money(mean(recent))+"; précédent "+money(mean(old))+"; différence "+money(d)+". "}else{advSet("advDrift","Échantillon insuffisant","warn");$("advDriftNote").textContent=dated.length+"/40 trades valides requis."}
+ if(dated.length>=10){let seed=2166136261;dated.forEach(v=>seed=Math.imul(seed^Math.round(v*100),16777619));const rand=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296};const dds=[];for(let sim=0;sim<300;sim++){let eq=0,peak=0,maxdd=0;for(let i=0;i<dated.length;i++){eq+=dated[Math.floor(rand()*dated.length)];peak=Math.max(peak,eq);maxdd=Math.max(maxdd,peak-eq)}dds.push(maxdd)}dds.sort((a,b)=>a-b);advSet("advMonte","P95 DD "+money(dds[Math.floor(dds.length*.95)]),"warn");$("advMonteNote").textContent="300 séquences bootstrap avec remise sur "+dated.length+" P&L; drawdown cumulé, sans capital initial ni frais. Estimation non prédictive."}else{advSet("advMonte","Échantillon insuffisant","warn");$("advMonteNote").textContent=dated.length+"/10 trades valides requis."}
+ const costKeys=["fee","fees","feeRate","tradingFee","slippage","slippagePct","executionCost","costPct"],costs=[];btRows.forEach(x=>costKeys.forEach(k=>{if(advFinite(x[k]))costs.push(k+"="+x[k])}));advSet("advCosts",costs.length?"Paramètres détectés":"Non renseigné",costs.length?"good":"warn");$("advCostsNote").textContent=costs.length?costs.slice(0,4).join(" • "):"Aucun champ de frais/slippage reconnu; coûts réels non vérifiables."; 
+ const best=enough[0];advSet("advRotation",best?best.name:"Pas de données",best?"good":"warn");$("advRotationNote").textContent=best?("Score proxy "+best.score+"/100 • "+best.n+" trades • P&L "+money(best.pnl)+". Aucune rotation automatique."):"Aucune statistique stratégie exploitable.";advSet("advAudit",signals.length+" signaux",signals.length?"good":"warn");$("advAuditNote").textContent=signals.length?"Journal des signaux source ci-dessous; les exécutions ne sont pas confirmées par le seul signal.":"Aucun signal enregistré."; 
+ $("advStatus").textContent=(closed.length||signals.length||Object.keys(stats).length)?"Calculé depuis les données chargées":"En attente des données";$("advStatus").className="badge "+((closed.length||signals.length||Object.keys(stats).length)?"green":"yellow");$("advUpdated").textContent="Dernier calcul : "+new Date().toLocaleString();$("advStrategyMeta").textContent=stratRows.length+" stratégies documentées • score indicatif";
+ $("advStrategyTable").innerHTML=stratRows.slice(0,100).map(x=>"<tr><td><b>"+esc(x.name)+"</b></td><td>"+x.n+"</td><td>"+(x.n?pct(x.w/x.n*100):"—")+"</td><td class=\""+(x.pnl>=0?"good":"bad")+"\">"+money(x.pnl)+"</td><td>"+(Number.isFinite(x.pf)?num(x.pf,2):"—")+"</td><td><b>"+x.score+"/100</b></td><td><span class=\"badge "+(x.n>=30?"green":"yellow")+"\">"+(x.n>=30?"Échantillon utile":"Échantillon faible")+"</span></td></tr>").join("")||"<tr><td colspan=\"7\" class=\"empty\">Aucune statistique de stratégie disponible</td></tr>";
+ $("advRiskMeta").textContent=(p.openPositions||[]).length+" positions • "+(p.pendingLimitOrders||[]).length+" ordres";const exposureRows=[...(p.openPositions||[]).map(x=>({name:x.instId||x.symbol||"Actif",amount:Number(x.allocatedUsd)||0,type:"Position"})),...(p.pendingLimitOrders||[]).map(x=>({name:x.instId||x.symbol||"Actif",amount:Number(x.reservedUsd??x.allocatedUsd)||0,type:"Ordre en attente"}))].sort((a,b)=>b.amount-a.amount),totalExp=exposureRows.reduce((a,x)=>a+x.amount,0);
+ $("advRiskTable").innerHTML=exposureRows.length?"<div class=\"tablewrap\"><table><thead><tr><th>Actif</th><th>Type</th><th>Allocation</th><th>Part exposition</th></tr></thead><tbody>"+exposureRows.slice(0,15).map(x=>"<tr><td><b>"+esc(x.name)+"</b></td><td>"+x.type+"</td><td>"+money(x.amount)+"</td><td>"+(totalExp?pct(x.amount/totalExp*100):"—")+"</td></tr>").join("")+"</tbody></table></div>":"<div class=\"empty\">Aucune position ou ordre réservé.</div>";
+ $("advAuditMeta").textContent=Math.min(100,signals.length)+" affichés • historique disponible";$("advAuditTable").innerHTML=signals.slice().sort((a,b)=>new Date(b.timestamp||0)-new Date(a.timestamp||0)).slice(0,100).map(x=>{const m=metaRecord(x,"Signal");return "<tr><td>"+timefmt(x.timestamp)+"</td><td><b>"+esc(x.instId||"—")+"</b></td><td>"+esc(x.signal||"—")+"</td><td>"+num(x.score,1)+"</td><td>"+pct(x.probability)+"</td><td>"+esc(x.dynamicMarketRegime||"—")+"</td><td>"+esc(m.strategy||"—")+"</td><td>"+(m.ev==null?"—":(m.ev>=0?"+":"")+m.ev.toFixed(2)+"%")+"</td><td><span class=\"badge "+(m.noTrade?"red":"yellow")+"\">"+(m.noTrade?"NO-TRADE":"Signal; exécution non confirmée")+"</span></td></tr>"}).join("")||"<tr><td colspan=\"9\" class=\"empty\">Aucun signal historique</td></tr>";
+}
 function openModal(){$("modal").classList.add("show")}  
 function closeModal(){$("modal").classList.remove("show")}  
 
