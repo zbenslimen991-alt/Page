@@ -260,7 +260,7 @@ td{color:#d2dce1;font-size:12px}
 </div></div></div>
 </main>
 <div class="footer">Zied Quant • Tableau de bord local en lecture seule • aucun ordre de trading n’est exécuté depuis cette page</div></div>
-<div id="modal" class="modal"><div class="modalbox"><h2 style="margin-top:0">Connexion GitHub</h2><div class="hint" style="margin-bottom:14px">La connexion sert uniquement à lire l’état du bot. Aucun ordre de trading n’est exécuté depuis le tableau de bord.</div><div class="form"><div class="field"><label>Owner</label><input id="owner" value="zbenslimen991-alt"></div><div class="field"><label>Repository</label><input id="repo" value="Zied"></div><div class="field"><label>Branch</label><input id="branch" value="main"></div><div class="field"><label>GitHub Personal Access Token</label><input id="token" type="password" autocomplete="off" placeholder="github_pat_..."></div><label class="check"><input id="remember" type="checkbox"> Mémoriser uniquement le dépôt (jeton temporaire)</label><div class="hint">Dépôt par défaut : <b>zbenslimen991-alt/Zied</b>. Le jeton reste temporaire dans la session du navigateur.</div><div id="connectionError" role="status" style="display:none;color:#ff9aa8;background:#30151c;border:1px solid #71313c;border-radius:10px;padding:10px;margin-top:8px;overflow-wrap:anywhere"></div><div class="actions" style="justify-content:flex-end;margin-top:5px"><button class="btn" id="closeModal">Annuler</button><button class="btn primary" id="saveConnect" type="button">Vérifier &amp; connecter</button></div></div></div></div><div id="toast" class="toast"></div>
+<div id="modal" class="modal"><div class="modalbox"><h2 style="margin-top:0">Connexion GitHub</h2><div class="hint" style="margin-bottom:14px">La connexion sert uniquement à lire l’état du bot. Aucun ordre de trading n’est exécuté depuis le tableau de bord.</div><div class="form"><div class="field"><label>Owner</label><input id="owner" value="zbenslimen991-alt"></div><div class="field"><label>Repository</label><input id="repo" value="Zied"></div><div class="field"><label>Branch</label><input id="branch" value="main"></div><div class="field"><label>GitHub Personal Access Token</label><input id="token" type="password" autocomplete="off" placeholder="github_pat_..."></div><label class="check"><input id="remember" type="checkbox"> Mémoriser uniquement le dépôt (jeton temporaire)</label><div class="hint">Dépôt par défaut : <b>zbenslimen991-alt/Zied</b>. Le jeton reste temporaire dans la session du navigateur.</div><div id="connectionError" role="status" style="display:none;color:#ff9aa8;background:#30151c;border:1px solid #71313c;border-radius:10px;padding:10px;margin-top:8px;overflow-wrap:anywhere"></div><div class="actions" style="justify-content:flex-end;margin-top:5px"><button class="btn" id="closeModal">Annuler</button><button class="btn primary" id="saveConnect" type="button" onclick="connectGithub()">Vérifier &amp; connecter</button></div></div></div></div><div id="toast" class="toast"></div>
 
 
 <main id="news" class="tabpage" style="display:none">
@@ -473,7 +473,7 @@ async function connectGithub(){
     else if(state.opsLastRefreshOk>0)toast("Connexion vérifiée: "+repoMeta.full_name+" • "+state.opsLastRefreshOk+"/"+Object.keys(FILES).length+" sources chargées.");
   }catch(e){
     $("conn").textContent="Connexion échouée";$("dot").className="dot bad";openModal();
-    const box=$("connectionError");if(box){box.style.display="block";box.textContent="Échec de connexion : "+(e&&e.message?e.message:String(e));}
+    const box=$("connectionError");if(box){box.style.display="block";box.textContent="Échec de connexion : "+(e&&e.message?e.message:String(e));}else alert("Échec de connexion : "+(e&&e.message?e.message:String(e)));
     toast("Connexion: "+(e&&e.message?e.message:String(e)));
   }finally{b.disabled=false;b.textContent="Vérifier & connecter";}
 }
@@ -1145,7 +1145,7 @@ document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{showTab(b.dataset.ta
 window.addEventListener("hashchange",()=>showTab(location.hash.slice(1)||"overview"));  
 
 $("settingsBtn").onclick=openModal;$("closeModal").onclick=closeModal;$("refreshBtn").onclick=refresh;$("signalLimit").onchange=renderSignals;  
-$("saveConnect").addEventListener("click",function(event){event.preventDefault();connectGithub();});  
+// Connection is triggered by the button inline handler to make the action explicit.  
 
 window.addEventListener("resize",()=>{if(state.data.portfolio){drawEquity(state.data.portfolio);renderMonthlyPnL()}});
 
