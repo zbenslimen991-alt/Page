@@ -103,7 +103,7 @@ const STRATEGY_SOURCE = "okx_quant/strategy_engine.py";
 const DEFAULT_STRATEGY_NAMES = ["BREAKOUT", "PULLBACK", "STRUCTURE_SHIFT", "TREND_FOLLOW", "MEAN_REVERSION", "MOMENTUM_SPIKE", "SQUEEZE_BREAKOUT", "RELATIVE_STRENGTH", "RANGE_BOUNCE", "ACCUMULATION", "VWAP_RECLAIM", "FVG_RETEST", "EMA_CROSS", "BB_WALK", "MACD_DIVERGENCE", "LIQUIDITY_SWEEP_RECLAIM", "OPENING_RANGE_BREAKOUT", "FAILED_BREAKDOWN", "FUNDING_SQUEEZE", "CVD_ABSORPTION", "DONCHIAN_BREAKOUT", "SUPERTREND_FLIP", "INSIDE_BAR_NR7", "EMA_RIBBON_PULLBACK", "OBV_BREAKOUT", "PREV_DAY_HIGH_BREAK", "KELTNER_BREAKOUT", "RSI_THRUST", "HIGHER_LOW_BREAK", "ENGULFING_SUPPORT", "VOLUME_CLIMAX_REVERSAL", "ICHIMOKU_CLOUD_BREAK", "CANDLE_RESEARCH", "COMMON_FACTOR", "ATR_BREAKOUT", "ADX_DI_TREND", "RSI_DIVERGENCE", "STOCHASTIC_REVERSAL", "MFI_ACCUMULATION", "VWMA_RECLAIM", "ROC_MOMENTUM", "RANGE_EXPANSION", "PIVOT_RECLAIM", "FIB_RETRACEMENT_RECLAIM", "ATR_PULLBACK", "GAP_CONTINUATION", "PSAR_FLIP", "CMF_BREAKOUT", "AD_LINE_BREAKOUT", "ELDER_RAY_BREAKOUT", "AROON_CROSS", "CCI_REVERSAL", "WILLIAMS_R_REVERSAL", "HULL_MA_FLIP", "TRIX_CROSS", "VORTEX_CROSS"];
 let STRATEGY_NAMES = [...DEFAULT_STRATEGY_NAMES];
 
-const state={data:{},cfg:{owner:"zbenslimen991-alt",repo:"Zied-main",branch:"main",token:""},timer:null,okxTimer:null,okxPrices:{},okxUpdatedAt:null};
+const state={data:{},cfg:{owner:"zbenslimen991-alt",repo:"Zied",branch:"main",token:""},timer:null,okxTimer:null,okxPrices:{},okxUpdatedAt:null};
 
 // OKX public market data: no API key is required for ticker prices.
 // Private OKX account keys must NEVER be placed in this static dashboard.
@@ -206,7 +206,7 @@ function toast(s){$("toast").textContent=s;$("toast").classList.add("show");setT
 function cfgLoad(){  
   const s=sessionStorage.getItem("ziedDashCfg"), l=localStorage.getItem("ziedDashCfg");  
   const x=s?JSON.parse(s):l?JSON.parse(l):null;if(x)state.cfg={...state.cfg,...x};  
-  if(state.cfg.owner==="zbenslimen991-alt" && state.cfg.repo==="Zied-runner") state.cfg.repo="Zied-main";  
+  if(state.cfg.owner==="zbenslimen991-alt" && ["Zied-runner","Zied-main"].includes(state.cfg.repo)) state.cfg.repo="Zied";  
   $("owner").value=state.cfg.owner;$("repo").value=state.cfg.repo;$("branch").value=state.cfg.branch;$("token").value=state.cfg.token||"";  
   $("remember").checked=!!l;  
 }  
