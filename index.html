@@ -1148,11 +1148,11 @@ if(state.cfg.token){
         if(!owner||!repo||!token){showMessage("Remplissez Owner, Repository et GitHub Personal Access Token.");return;}
         save.disabled=true;save.textContent="Connexion en cours…";
         try{
-          var resp=await fetch("https://api.github.com/repos/"+encodeURIComponent(owner)+"/"+encodeURIComponent(repo),{
+          var resp=await fetch("https://api.github.com/repos/"+encodeURIComponent(owner)+"/"+encodeURIComponent(repo)+"/contents/portfolio.json?ref="+encodeURIComponent(branch),{
             headers:{"Accept":"application/vnd.github+json","Authorization":"Bearer "+token}
           });
           if(!resp.ok){
-            var msg=resp.status===401?"Jeton invalide ou expiré (HTTP 401).":resp.status===403?"Accès refusé (HTTP 403) : autorisez Contents: Read sur ce dépôt privé.":resp.status===404?"Dépôt introuvable ou jeton sans accès (HTTP 404).":"GitHub HTTP "+resp.status;
+            var msg=resp.status===401?"Jeton invalide ou expiré (HTTP 401).":resp.status===403?"Accès refusé (HTTP 403) : le jeton doit avoir Contents: Read sur le dépôt privé.":resp.status===404?"Fichier portfolio.json ou branche introuvable, ou le jeton n'a pas accès au contenu (HTTP 404).":"Lecture du fichier portfolio.json impossible (GitHub HTTP "+resp.status+").";
             showMessage(msg);return;
           }
           var cfg={owner:owner,repo:repo,branch:branch,token:token};
