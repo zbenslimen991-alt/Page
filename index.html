@@ -1126,4 +1126,50 @@ if(state.cfg.token){
   state.timer=setInterval(refresh,30000);
   state.okxTimer=setInterval(fetchOkxPrices,OKX_REFRESH_MS);
 }else openModal();  
+</script>
+<script>
+/* Standalone mobile connection controls: independent of the dashboard's main script. */
+(function(){
+  function byId(id){return document.getElementById(id);}
+  function showMessage(msg){
+    var t=byId("toast");
+    if(t){t.textContent=msg;t.classList.add("show");}
+    else window.alert(msg);
+  }
+  function bind(){
+    var save=byId("saveConnect"), cancel=byId("closeModal"), modal=byId("modal");
+    if(save && !save.dataset.standaloneBound){
+      save.dataset.standaloneBound="1";
+      save.addEventListener("click",async function(ev){
+        ev.preventDefault();ev.stopImmediatePropagation();
+        var owner=(byId("owner").value||"").trim(), repo=(byId("repo").value||"").trim(),
+            branch=(byId("branch").value||"main").trim(), token=(byId("token").value||"").trim(),
+            remember=!!byId("remember").checked;
+        if(!owner||!repo||!token){showMessage("Remplissez Owner, Repository et GitHub Personal Access Token.");return;}
+        save.disabled=true;save.textContent="Connexion en cours…";
+        try{
+          var resp=await fetch("https://api.github.com/repos/"+encodeURIComponent(owner)+"/"+encodeURIComponent(repo),{
+            headers:{"Accept":"application/vnd.github+json","Authorization":"Bearer "+token}
+          });
+          if(!resp.ok){
+            var msg=resp.status===401?"Jeton invalide ou expiré (HTTP 401).":resp.status===403?"Accès refusé (HTTP 403) : autorisez Contents: Read sur ce dépôt privé.":resp.status===404?"Dépôt introuvable ou jeton sans accès (HTTP 404).":"GitHub HTTP "+resp.status;
+            showMessage(msg);return;
+          }
+          var cfg={owner:owner,repo:repo,branch:branch,token:token};
+          try{sessionStorage.setItem("ziedDashCfg",JSON.stringify(cfg));}catch(e){}
+          try{if(remember)localStorage.setItem("ziedDashCfg",JSON.stringify(cfg));else localStorage.removeItem("ziedDashCfg");}catch(e){}
+          if(modal)modal.classList.remove("show");
+          showMessage("Accès GitHub vérifié. Actualisation du tableau…");
+          setTimeout(function(){window.location.reload();},500);
+        }catch(err){showMessage("Erreur réseau GitHub. Vérifiez la connexion Internet puis réessayez.");}
+        finally{save.disabled=false;save.textContent="Enregistrer & connecter";}
+      },true);
+    }
+    if(cancel && !cancel.dataset.standaloneBound){
+      cancel.dataset.standaloneBound="1";
+      cancel.addEventListener("click",function(ev){ev.preventDefault();ev.stopImmediatePropagation();if(modal)modal.classList.remove("show");},true);
+    }
+  }
+  bind();document.addEventListener("DOMContentLoaded",bind);
+})();
 </script></body></html>
