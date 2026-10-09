@@ -70,6 +70,7 @@
 <div class="cards">
 <div class="card"><div class="label">Backtest Integrity</div><div id="advIntegrity" class="value warn">—</div><div id="advIntegrityNote" class="mini"></div></div>
 <div class="card"><div class="label">Walk-Forward</div><div id="advWalk" class="value warn">—</div><div id="advWalkNote" class="mini"></div></div>
+<div class="card"><div class="label">Anti-Overfitting Engine</div><div id="advOverfit" class="value warn">En attente</div><div id="advOverfitNote" class="mini">En attente des rapports de validation OOS.</div></div>
 <div class="card"><div class="label">Strategy Reliability</div><div id="advReliability" class="value">—</div><div id="advReliabilityNote" class="mini"></div></div>
 <div class="card"><div class="label">Market Regime</div><div id="advRegime" class="value">—</div><div id="advRegimeNote" class="mini"></div></div>
 <div class="card"><div class="label">Portfolio Risk</div><div id="advRisk" class="value">—</div><div id="advRiskNote" class="mini"></div></div>
@@ -688,6 +689,20 @@ function renderAdvanced(){
  }else{
   advSet("advWalk","Indisponible","warn");
   $("advWalkNote").textContent="Aucune métrique walkForwardWindows/oosTrades reconnue dans les résultats Backtest chargés.";
+ }
+ const ofRows=btRows.filter(x=>x.antiOverfitting&&typeof x.antiOverfitting==="object");
+ if(ofRows.length){
+  const reports=ofRows.map(x=>x.antiOverfitting);
+  const meanScore=reports.reduce((a,x)=>a+(Number(x.score)||0),0)/reports.length;
+  const insufficient=reports.filter(x=>x.status==="INSUFFICIENT_EVIDENCE").length;
+  const elevated=reports.filter(x=>x.status==="ELEVATED_OVERFIT_RISK").length;
+  const strong=reports.filter(x=>x.status==="LOWER_OVERFIT_RISK").length;
+  const flags=[...new Set(reports.flatMap(x=>Array.isArray(x.riskFlags)?x.riskFlags:[]))];
+  advSet("advOverfit",meanScore.toFixed(1)+"/100 • "+reports.length+" actifs",insufficient||elevated?"warn":"good");
+  $("advOverfitNote").textContent="Rapports moteur : "+strong+" validation plus robuste, "+elevated+" risque élevé, "+insufficient+" preuves insuffisantes. Alertes : "+(flags.slice(0,4).join(", ")||"aucune")+". Score = force des preuves, pas probabilité de profit; PBO non calculé.";
+ }else{
+  advSet("advOverfit","Non disponible","warn");
+  $("advOverfitNote").textContent="Le fichier Backtest chargé ne contient pas encore antiOverfitting. Un nouveau Backtest doit s'exécuter pour produire ce rapport.";
  }
  const norm={};Object.entries(stats).forEach(([k,v])=>{if(v&&typeof v==="object")norm[k.trim().toUpperCase()]=v});
  const stratRows=STRATEGY_NAMES.map(name=>{const x=norm[name];if(!x)return null;const n=Number(x.trades??x.totalTrades)||0,w=Number(x.wins)||0,pnl=Number(x.pnlSum??x.pnl)||0,pf=Number(x.profitFactor);const wr=n?w/n:0,sample=Math.min(1,n/50),pfScore=Number.isFinite(pf)?Math.max(0,Math.min(1,pf/2)):Math.max(0,Math.min(1,pnl>0 ? 0.65 : 0.25));return{name,n,w,pnl,pf,wr,score:Math.round(100*(.45*wr+.35*pfScore+.20*sample))}}).filter(Boolean).sort((a,b)=>b.score-a.score);
