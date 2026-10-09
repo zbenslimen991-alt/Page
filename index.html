@@ -533,7 +533,8 @@ async function refresh(){
     const missingRepo=/HTTP 404|GitHub HTTP 404/i.test(allErrors);
     $("conn").textContent=authFailure?"GitHub access denied — check Token":missingRepo?"Repository/file not found — check settings":"Connection failed";$("dot").className="dot bad";  
     renderOperationsMonitor();
-    toast(authFailure?"GitHub refused access. Verify that the token is valid and has Contents: Read access to the private Zied repository.":missingRepo?"GitHub returned 404. Verify owner, repository, branch, and the required JSON files.":(errs[0]||state.opsLastRefreshErrors[0]||"Could not read repository"));
+    if(authFailure||missingRepo){openModal();}
+    toast(authFailure?"GitHub refused access. The connection window is open: verify the token and Contents: Read access to the private Zied repository.":missingRepo?"GitHub returned 404. The connection window is open: verify owner, repository, branch, and required JSON files.":(errs[0]||state.opsLastRefreshErrors[0]||"Could not read repository"));
     return;  
   }  
   $("conn").textContent=`Connected • ${ok}/${entries.length} • ${state.cfg.repo}`;$("dot").className="dot ok";  
