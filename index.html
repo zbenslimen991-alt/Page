@@ -1156,8 +1156,8 @@ if(state.cfg.token){
           }
           var rootFiles=await resp.json();
           if(!Array.isArray(rootFiles)){showMessage("GitHub a renvoyé un format inattendu pour les fichiers du dépôt.");return;}
-          var portfolioFile=rootFiles.find(function(f){return f.type==="file"&&/^portfolio(?:_\d+)?\.json$/i.test(f.name);});
-          if(!portfolioFile){showMessage("Connexion GitHub réussie, mais aucun fichier portfolio*.json n'a été trouvé dans cette branche.");return;}
+          if(!rootFiles.length){showMessage("Le dépôt est accessible, mais sa racine ne contient aucun fichier.");return;}
+          /* Do not require a fixed portfolio filename here: refresh() resolves rotating filenames from the repository listing. */
           var cfg={owner:owner,repo:repo,branch:branch,token:token};
           try{sessionStorage.setItem("ziedDashCfg",JSON.stringify(cfg));}catch(e){}
           try{if(remember)localStorage.setItem("ziedDashCfg",JSON.stringify(cfg));else localStorage.removeItem("ziedDashCfg");}catch(e){}
