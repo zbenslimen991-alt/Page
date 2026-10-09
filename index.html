@@ -260,7 +260,7 @@ td{color:#d2dce1;font-size:12px}
 </div></div></div>
 </main>
 <div class="footer">Zied Quant • Tableau de bord local en lecture seule • aucun ordre de trading n’est exécuté depuis cette page</div></div>
-<div id="modal" class="modal"><div class="modalbox"><h2 style="margin-top:0">Connexion GitHub</h2><div class="hint" style="margin-bottom:14px">La connexion sert uniquement à lire l’état du bot. Aucun ordre de trading n’est exécuté depuis le tableau de bord.</div><div class="form"><div class="field"><label>Owner</label><input id="owner" value="zbenslimen991-alt"></div><div class="field"><label>Repository</label><input id="repo" value="Zied-main"></div><div class="field"><label>Branch</label><input id="branch" value="main"></div><div class="field"><label>GitHub Personal Access Token</label><input id="token" type="password" autocomplete="off" placeholder="github_pat_..."></div><label class="check"><input id="remember" type="checkbox"> Mémoriser le jeton sur cet appareil</label><div class="hint">Dépôt par défaut : <b>zbenslimen991-alt/Zied-main</b></div><div class="actions" style="justify-content:flex-end;margin-top:5px"><button class="btn" id="closeModal">Annuler</button><button class="btn primary" id="saveConnect" type="button" onclick="try{cfgSave();closeModal();refresh()}catch(e){openModal();toast('Erreur de connexion: '+(e&&e.message?e.message:String(e)))}">Enregistrer & connecter</button></div></div></div></div><div id="toast" class="toast"></div>
+<div id="modal" class="modal"><div class="modalbox"><h2 style="margin-top:0">Connexion GitHub</h2><div class="hint" style="margin-bottom:14px">La connexion sert uniquement à lire l’état du bot. Aucun ordre de trading n’est exécuté depuis le tableau de bord.</div><div class="form"><div class="field"><label>Owner</label><input id="owner" value="zbenslimen991-alt"></div><div class="field"><label>Repository</label><input id="repo" value="Zied"></div><div class="field"><label>Branch</label><input id="branch" value="main"></div><div class="field"><label>GitHub Personal Access Token</label><input id="token" type="password" autocomplete="off" placeholder="github_pat_..."></div><label class="check"><input id="remember" type="checkbox"> Mémoriser uniquement le dépôt (jeton temporaire)</label><div class="hint">Dépôt par défaut : <b>zbenslimen991-alt/Zied</b>. Le jeton reste temporaire dans la session du navigateur.</div><div class="actions" style="justify-content:flex-end;margin-top:5px"><button class="btn" id="closeModal">Annuler</button><button class="btn primary" id="saveConnect" type="button" onclick="try{cfgSave();closeModal();refresh()}catch(e){openModal();toast('Erreur de connexion: '+(e&&e.message?e.message:String(e)))}">Enregistrer & connecter</button></div></div></div></div><div id="toast" class="toast"></div>
 
 
 <main id="news" class="tabpage" style="display:none">
@@ -410,22 +410,72 @@ const price=v=>{if(!Number.isFinite(Number(v)))return"—"; const n=Number(v); r
 
 function toast(s){$("toast").textContent=s;$("toast").classList.add("show");setTimeout(()=>$("toast").classList.remove("show"),3500)}  
 
-function cfgLoad(){  
-  const s=sessionStorage.getItem("ziedDashCfg"), l=localStorage.getItem("ziedDashCfg");  
-  const x=s?JSON.parse(s):l?JSON.parse(l):null;if(x)state.cfg={...state.cfg,...x};  
-  if(state.cfg.owner==="zbenslimen991-alt" && ["Zied-runner","Zied-main"].includes(state.cfg.repo)) state.cfg.repo="Zied";  
-  $("owner").value=state.cfg.owner;$("repo").value=state.cfg.repo;$("branch").value=state.cfg.branch;$("token").value=state.cfg.token||"";  
-  $("remember").checked=!!l;  
-}  
-
-function cfgSave(){  
-  const x={owner:$("owner").value.trim(),repo:$("repo").value.trim(),branch:$("branch").value.trim()||"main",token:$("token").value.trim()};  
-  if(!x.owner||!x.repo||!x.token)throw new Error("Owner, Repository et Token sont obligatoires.");
+function cfgLoad(){
+  let savedSession=null,savedPrefs=null;
+  try{savedSession=sessionStorage.getItem("ziedDashCfg");}catch(e){}
+  try{savedPrefs=localStorage.getItem("ziedDashPrefs");}catch(e){}
+  try{
+    const legacy=localStorage.getItem("ziedDashCfg");
+    if(legacy){
+      const x=JSON.parse(legacy);
+      if(x&&x.token&&!savedSession){try{sessionStorage.setItem("ziedDashCfg",JSON.stringify(x));savedSession=JSON.stringify(x);}catch(e){}}
+      const prefs={owner:x.owner||"zbenslimen991-alt",repo:x.repo||"Zied",branch:x.branch||"main"};
+      localStorage.setItem("ziedDashPrefs",JSON.stringify(prefs));localStorage.removeItem("ziedDashCfg");savedPrefs=JSON.stringify(prefs);
+    }
+  }catch(e){console.warn("Storage migration:",e);}
+  try{
+    const x=savedSession?JSON.parse(savedSession):null,p=savedPrefs?JSON.parse(savedPrefs):null;
+    if(p)state.cfg={...state.cfg,...p};if(x)state.cfg={...state.cfg,...x};
+  }catch(e){console.warn("Saved settings invalid; defaults loaded.",e);}
+  if(state.cfg.owner==="zbenslimen991-alt"&&["Zied-runner","Zied-main"].includes(state.cfg.repo))state.cfg.repo="Zied";
+  $("owner").value=state.cfg.owner;$("repo").value=state.cfg.repo;$("branch").value=state.cfg.branch;$("token").value=state.cfg.token||"";
+  $("remember").checked=false;
+}
+function cfgSave(){
+  const x={owner:$("owner").value.trim(),repo:$("repo").value.trim(),branch:$("branch").value.trim()||"main",token:$("token").value.trim()};
+  if(!x.owner||!x.repo||!x.branch||!x.token)throw new Error("Owner, Repository, Branch et Token sont obligatoires.");
+  if(!/^[A-Za-z0-9_.-]+$/.test(x.owner)||!/^[A-Za-z0-9_.-]+$/.test(x.repo))throw new Error("Owner ou Repository invalide.");
   state.cfg=x;
-  try{sessionStorage.setItem("ziedDashCfg",JSON.stringify(x));}catch(e){console.warn("Session storage unavailable",e);}
-  try{if($("remember").checked)localStorage.setItem("ziedDashCfg",JSON.stringify(x));else localStorage.removeItem("ziedDashCfg");}catch(e){console.warn("Local storage unavailable",e);toast("Connexion conservée uniquement en mémoire pour cette session.");}
-}  
-
+  try{sessionStorage.setItem("ziedDashCfg",JSON.stringify(x));}
+  catch(e){throw new Error("Le stockage de session est indisponible. Autorisez les données du site puis réessayez.");}
+  try{
+    if($("remember").checked)localStorage.setItem("ziedDashPrefs",JSON.stringify({owner:x.owner,repo:x.repo,branch:x.branch}));
+    else localStorage.removeItem("ziedDashPrefs");
+    localStorage.removeItem("ziedDashCfg");
+  }catch(e){toast("Dépôt non mémorisé; connexion disponible pour cette session.");}
+}
+async function connectGithub(){
+  const b=$("saveConnect");b.disabled=true;b.textContent="Vérification…";
+  try{
+    cfgSave();$("conn").textContent="Vérification GitHub…";$("dot").className="dot";
+    const base="https://api.github.com/repos/"+encodeURIComponent(state.cfg.owner)+"/"+encodeURIComponent(state.cfg.repo);
+    const r=await fetch(base,{headers:headers(),cache:"no-store"});
+    if(!r.ok){
+      let detail="";try{const j=await r.json();detail=j.message||"";}catch(e){}
+      if(r.status===401)throw new Error("Token refusé (HTTP 401). Vérifiez qu’il est valide et non expiré.");
+      if(r.status===403)throw new Error("Accès refusé ou limite API (HTTP 403). Vérifiez Contents: Read sur le dépôt.");
+      if(r.status===404)throw new Error("Dépôt introuvable ou non accessible (HTTP 404). Vérifiez Owner, Repository et les droits du token.");
+      throw new Error("Vérification GitHub HTTP "+r.status+(detail?" — "+detail:""));
+    }
+    const repoMeta=await r.json(),branch=state.cfg.branch;
+    const br=await fetch(base+"/branches/"+encodeURIComponent(branch),{headers:headers(),cache:"no-store"});
+    if(!br.ok)throw new Error("Branche « "+branch+" » introuvable ou inaccessible (HTTP "+br.status+").");
+    const root=await fetch(base+"/contents?ref="+encodeURIComponent(branch),{headers:headers(),cache:"no-store"});
+    if(!root.ok)throw new Error("Le dépôt répond, mais la liste des fichiers est inaccessible (HTTP "+root.status+").");
+    const listing=await root.json();if(!Array.isArray(listing))throw new Error("Réponse GitHub inattendue pour la liste des fichiers.");
+    const names=listing.map(x=>x.name);
+    const absent=Object.values(FILES).filter(path=>{
+      const stem=path.replace(/\.json$/,"");
+      return !names.includes(path)&&!names.some(n=>new RegExp("^"+stem+"_\\d{4,}\\.json$").test(n));
+    });
+    closeModal();await refresh();
+    if(absent.length)toast("Connexion validée; sources absentes: "+absent.join(", "));
+    else if(state.opsLastRefreshOk>0)toast("Connexion vérifiée: "+repoMeta.full_name+" • "+state.opsLastRefreshOk+"/"+Object.keys(FILES).length+" sources chargées.");
+  }catch(e){
+    $("conn").textContent="Connexion échouée";$("dot").className="dot bad";openModal();
+    toast("Connexion: "+(e&&e.message?e.message:String(e)));
+  }finally{b.disabled=false;b.textContent="Vérifier & connecter";}
+}
 function headers(){return state.cfg.token?{"Authorization":"Bearer "+state.cfg.token,"Accept":"application/vnd.github+json"}:{"Accept":"application/vnd.github+json"}}  
 
 async function getText(path){
@@ -1094,7 +1144,7 @@ document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{showTab(b.dataset.ta
 window.addEventListener("hashchange",()=>showTab(location.hash.slice(1)||"overview"));  
 
 $("settingsBtn").onclick=openModal;$("closeModal").onclick=closeModal;$("refreshBtn").onclick=refresh;$("signalLimit").onchange=renderSignals;  
-$("saveConnect").addEventListener("click",function(event){event.preventDefault();event.stopPropagation();try{cfgSave();closeModal();refresh()}catch(e){openModal();toast("Erreur de connexion: "+(e&&e.message?e.message:String(e)))}});  
+$("saveConnect").addEventListener("click",function(event){event.preventDefault();connectGithub();});  
 
 window.addEventListener("resize",()=>{if(state.data.portfolio){drawEquity(state.data.portfolio);renderMonthlyPnL()}});
 
