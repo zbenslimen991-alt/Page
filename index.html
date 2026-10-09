@@ -22,6 +22,100 @@
 .meta-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}.meta-card{padding:13px;border:1px solid #203d51;border-radius:14px;background:#08141e}.meta-card b{display:block;font-size:18px;margin-top:4px}.meta-card .mini{display:block}.meta-card.ok{border-color:#2d715e}.meta-card.warn{border-color:#6a5221}.meta-card.no{border-color:#713340;background:#211017}.meta-table{min-width:1100px}.meta-note{margin-top:10px;padding:9px 11px;border:1px dashed #2c5a75;border-radius:11px;color:#a9c6d8;font-size:11px}
 @media(max-width:1200px){.meta-grid{grid-template-columns:repeat(3,1fr)}}@media(max-width:760px){.meta-grid{grid-template-columns:1fr 1fr}}@media(max-width:430px){.meta-grid{grid-template-columns:1fr}}
 @media(max-width:760px){.tablewrap table{min-width:900px}}
+
+/* Zied Quant — confort visuel, hiérarchie claire et interface apaisée */
+:root{
+ --bg:#f3f6f8;--panel:#ffffff;--panel2:#f7fafb;--line:#dce5e9;
+ --text:#20313b;--muted:#6e808b;--cyan:#287e83;--blue:#4777a8;
+ --purple:#7963a5;--green:#28785c;--gold:#946b20;--red:#b84b58;
+ --shadow:0 5px 18px rgba(35,55,68,.055);--r:16px
+}
+html{scroll-behavior:smooth;color-scheme:light}
+body{background:#f3f6f8;color:var(--text);font-size:14px;line-height:1.6}
+.wrap{max-width:1500px;padding:24px}
+.top{padding:4px 0 18px;border-bottom:1px solid #dce5e9;margin-bottom:22px}
+.logo{background:#e2f0ef;border:1px solid #c5dfdc;color:#276e70;box-shadow:none;border-radius:14px}
+h1{font-size:22px;letter-spacing:-.025em;color:#20313b}
+.sub,.mini,.label{color:#71818a}
+.btn{background:#fff;color:#334852;border-color:#d5e0e5;border-radius:10px;box-shadow:0 1px 2px rgba(20,40,50,.025)}
+.btn:hover{background:#f5f9fa;border-color:#9bb9bd}
+.btn.primary{background:#286f70;color:#fff;border-color:#286f70}
+.status{background:#fff;border-color:#dce5e9;color:#425760}
+.dot.ok{box-shadow:none}
+.hero{background:linear-gradient(120deg,#e7f1f1,#edf3f7);border:1px solid #d3e3e5;border-radius:20px;box-shadow:none;padding:28px;margin-bottom:18px}
+.hero:before{display:none}
+.hero h2{color:#213d46;letter-spacing:-.035em}
+.hero p{color:#526a74}
+.eyebrow{color:#397f80;letter-spacing:.09em}
+.hero-metric{background:rgba(255,255,255,.72);border-color:#d6e4e6;border-radius:13px}
+.hero-metric b{color:#263f48}
+.arch{background:#fff;border-color:#dce5e9;box-shadow:var(--shadow);border-radius:18px}
+.arch-head{border-bottom-color:#e4ebee}
+.arch-head h2,.panel h2{color:#263b45}
+.legend span{background:#f7fafb;border-color:#e0e8eb}
+.pipeline{padding:18px}
+.step{background:#fbfcfd;border-color:#e0e8eb;box-shadow:none;border-radius:14px}
+.step:hover{transform:translateY(-1px);border-color:#aac8ca;box-shadow:0 5px 14px rgba(35,55,68,.06)}
+.step .n{background:#e4f1f0;color:#287e83}
+.step h3{color:#2a4049}
+.step ul{color:#61747d}
+.step li:before{color:#4a9290}
+.step.market,.step.ai,.step.risk,.step.decision,.step.engine{border-color:#dce5e9;background:#fbfcfd}
+.step.market .n,.step.ai .n,.step.risk .n,.step.decision .n,.step.engine .n{background:#edf3f5;color:#496f7b}
+.engine-box{border-color:#cfe2d8;background:#f4faf6}
+.engine-title h3{color:#2d7256}
+.eg{background:#f9fcfa;border-color:#d7e9de}
+.eg strong{color:#346e55}.eg span{color:#708c7c}
+.engine-foot{background:#f4faf6;border-color:#cfe2d8;color:#4e7561}
+.outcome{background:#f4faf6;border-color:#cfe2d8}
+.outcome.no{background:#fff7f7;border-color:#efd5d9}
+.outcome ul{color:#61747d}
+.feedback{background:#f5fafb;border-color:#d0e2e6;color:#536d78}
+.feedback b{color:#287e83}
+.cards{gap:12px}
+.card,.panel{background:#fff;border-color:#dce5e9;box-shadow:var(--shadow);border-radius:15px}
+.card{padding:16px;transition:border-color .15s ease}
+.card:hover{border-color:#b7cdd1}
+.label{text-transform:none;letter-spacing:.015em;font-size:11px;font-weight:600}
+.value{font-size:22px;color:#253a44;letter-spacing:-.025em}
+.good{color:#28785c}.bad{color:#b84b58}.warn{color:#946b20}
+.tabs{background:rgba(243,246,248,.94);border-color:#dce5e9;box-shadow:0 3px 12px rgba(35,55,68,.04);backdrop-filter:blur(12px);border-radius:13px}
+.tabs .btn{background:transparent;color:#586d77}
+.tabs .btn.active,.tab.active{background:#e2efee!important;border-color:#c6dfdc!important;color:#286f70!important}
+.panel{padding:18px}
+.kpi{background:#f7fafb;border-color:#e3eaed;border-radius:11px}
+.kpi b{color:#293f49}
+table{border-collapse:separate;border-spacing:0}
+th,td{border-bottom:1px solid #e8eef0}
+th{background:#f7fafb;color:#6d7f88;font-weight:700}
+td{color:#344b55}
+.tablewrap{border-color:#e0e8eb;border-radius:12px}
+.badge{background:#f0f5f7;border-color:#dfe8eb;color:#506771}
+.badge.green{background:#eaf6ef;color:#28785c;border-color:#d1e9dc}
+.badge.red{background:#fff0f1;color:#a9404d;border-color:#f0d7da}
+.badge.yellow{background:#fbf5e7;color:#8a671e;border-color:#eee1be}
+.progress{background:#e8eff1}.progress>i{background:#4d9695}
+.barrow{color:#4d626c}
+.month-card,.meta-card{background:#f8fafb;border-color:#e0e8eb}
+.year-select{background:#fff;color:#304650;border-color:#d5e0e5}
+.map-page{background:#f7fafb;border-color:#dce5e9}
+.map-page .map-wrap{color:#263b45}
+.modal{background:rgba(30,47,57,.42)}
+.modalbox{background:#fff;color:#263b45;border-color:#dce5e9;box-shadow:0 24px 70px rgba(30,47,57,.2)}
+.field input,.field select{background:#fbfcfd;color:#263b45;border-color:#d5e0e5}
+.toast{background:#fff;color:#263b45;border-color:#d5e0e5;box-shadow:0 8px 28px rgba(35,55,68,.12)}
+.footer{color:#81919a}
+.monthly-chart{background:#fff}
+.meta-card.ok{border-color:#cfe2d8}.meta-card.warn{border-color:#eadfbe}.meta-card.no{border-color:#efd5d9;background:#fff7f7}
+.meta-note{background:#f5fafb;border-color:#d0e2e6;color:#536d78}
+@media(max-width:760px){
+ .wrap{padding:12px}.top{gap:12px}.hero{padding:19px}.hero h2{line-height:1.2}
+ .cards{gap:9px}.card{padding:12px}.value{font-size:19px}
+ .tabs{top:4px;padding:6px}.panel{padding:13px}
+ .arch{border-radius:15px}.pipeline{padding:12px}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
 </style></head><body>
 <div class="wrap">
 <header class="top"><div class="brand"><div class="logo">ZQ</div><div><h1>Zied Quant • Trading Intelligence</h1><div class="sub">Tableau de bord professionnel du système de trading quantitatif et de l’intelligence artificielle</div></div></div><div class="actions"><span class="status"><i id="dot" class="dot"></i><span id="conn">Disconnected</span></span><button class="btn" id="settingsBtn">⚙ Connexion</button><button class="btn primary" id="refreshBtn">↻ Actualiser</button></div></header>
