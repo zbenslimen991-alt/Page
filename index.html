@@ -116,6 +116,109 @@ td{color:#344b55}
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 
+
+/* ZQ PRO v2 — institutional quant terminal, restrained contrast */
+:root{
+ --bg:#0b1015;--panel:#111920;--panel2:#151f27;--line:#28343d;
+ --text:#e7edf0;--muted:#93a2ab;--cyan:#77c7bd;--blue:#82a9d3;
+ --purple:#b0a0d5;--green:#65c49a;--gold:#d9b66f;--red:#e1848b;
+ --shadow:0 8px 24px rgba(0,0,0,.16);--r:12px
+}
+html{color-scheme:dark;background:#0b1015}
+body{background:#0b1015;color:#e7edf0;font-size:13px;line-height:1.55}
+.wrap{max-width:1680px;padding:22px 26px}
+.top{padding:0 0 17px;margin-bottom:18px;border-bottom:1px solid #28343d}
+.brand{gap:12px}
+.logo{width:42px;height:42px;border-radius:11px;background:#17272b;border:1px solid #34534f;color:#91d2c8;box-shadow:none}
+h1{font-size:20px;font-weight:700;letter-spacing:-.035em;color:#edf2f4}
+.sub,.mini{color:#8d9ca5}
+.actions{align-items:center}
+.status{background:#111920;border:1px solid #2a3942;color:#bac5cb}
+.dot.ok{box-shadow:0 0 0 3px rgba(101,196,154,.10)}
+.btn{background:#141d24;border:1px solid #2b3942;color:#dce5e9;border-radius:8px;padding:8px 12px;box-shadow:none}
+.btn:hover{background:#1a2730;border-color:#48616d}
+.btn.primary{background:#234943;border-color:#32685f;color:#d7f4ed}
+.hero{padding:24px 26px;margin-bottom:15px;border:1px solid #2b3b43;border-radius:14px;background:#121b22;box-shadow:none}
+.hero:before{display:none}
+.hero-grid{grid-template-columns:minmax(0,1.65fr) minmax(240px,.8fr);gap:24px}
+.eyebrow{font-size:10px;color:#82c9bf;letter-spacing:.14em}
+.hero h2{font-size:clamp(25px,3vw,36px);line-height:1.18;letter-spacing:-.045em;color:#eaf0f2;margin:8px 0 10px}
+.hero p{font-size:13px;color:#9eafb7;max-width:720px}
+.hero-metrics{gap:8px}
+.hero-metric{padding:11px 13px;background:#0e151b;border:1px solid #293840;border-radius:10px}
+.hero-metric b{font-size:18px;color:#e4ecef}
+.hero-metric .mini{font-size:10px}
+.cards{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:13px}
+.card,.panel,.arch{background:#111920;border:1px solid #28343d;border-radius:12px;box-shadow:none}
+.card{padding:13px 15px;min-height:82px}
+.card:hover{border-color:#40535e}
+.label{font-size:10px;color:#8e9da6;letter-spacing:.055em;text-transform:uppercase;font-weight:650}
+.value{font-size:21px;line-height:1.25;letter-spacing:-.035em;color:#e5ecef;font-variant-numeric:tabular-nums}
+.good{color:#65c49a}.bad{color:#e1848b}.warn{color:#d9b66f}
+.tabs{position:sticky;top:5px;z-index:20;display:flex;gap:4px;overflow-x:auto;padding:6px;margin:0 0 14px;background:rgba(13,19,24,.96);backdrop-filter:blur(14px);border:1px solid #28343d;border-radius:11px;box-shadow:0 4px 14px rgba(0,0,0,.12)}
+.tabs .btn{flex:0 0 auto;background:transparent;border-color:transparent;color:#9cabb3;padding:8px 11px;font-size:12px}
+.tabs .btn:hover{background:#19252d;color:#e5ecef}
+.tabs .btn.active,.tab.active{background:#1b3433!important;border-color:#31524f!important;color:#a6ddd5!important}
+.panel{padding:16px;min-width:0}
+.panel h2{font-size:14px;font-weight:700;color:#e1e9ec;letter-spacing:-.01em}
+.panelhead{margin-bottom:12px}
+.kpirow{gap:8px}
+.kpi{padding:11px 12px;background:#0d151b;border:1px solid #26343c;border-radius:9px}
+.kpi b{font-size:16px;color:#e2eaed;font-variant-numeric:tabular-nums}
+.kpi .mini{font-size:10px}
+.layout{gap:12px;margin-bottom:12px}
+.grid{gap:12px}
+table{border-collapse:collapse}
+th,td{border-bottom:1px solid #25323a;padding:10px 11px}
+th{background:#151f26;color:#8fa0a9;font-size:10px;font-weight:700}
+td{color:#d2dce1;font-size:12px}
+.tablewrap{border:1px solid #293740;border-radius:9px}
+.badge{background:#1b2830;border:1px solid #31424c;color:#b7c5cb;border-radius:6px}
+.badge.green{background:#142c25;color:#83d4ad;border-color:#2b5948}
+.badge.red{background:#301b20;color:#efa0a6;border-color:#61353c}
+.badge.yellow{background:#302817;color:#e5c77d;border-color:#5c4b2b}
+.progress{background:#25323a}.progress>i{background:#77c7bd}
+.barrow{color:#bdc9ce}
+.month-card,.meta-card{background:#0d151b;border-color:#293740;border-radius:10px}
+.year-select{background:#101920;color:#dce5e9;border-color:#2b3942}
+.arch-head{padding:17px 19px;border-bottom-color:#28343d}
+.arch-head h2{font-size:17px}
+.legend span{background:#151f26;border-color:#2b3b44}
+.pipeline{padding:16px;gap:11px}
+.step{background:#141e25;border:1px solid #2b3b44;border-radius:11px;min-height:135px;padding:13px}
+.step:hover{transform:translateY(-1px);border-color:#47616b;box-shadow:none}
+.step .n{background:#203538;color:#9ad8d0;border-radius:8px;width:27px;height:27px}
+.step h3{font-size:13px;color:#e0e8eb;margin:9px 0 6px}
+.step ul{font-size:11px;color:#a4b2b9}
+.step li:before{color:#77c7bd}
+.step.market,.step.ai,.step.risk,.step.decision,.step.engine{background:#141e25;border-color:#2b3b44}
+.step.market .n,.step.ai .n,.step.risk .n,.step.decision .n,.step.engine .n{background:#202d34;color:#a9c5d0}
+.engine-box{border:1px solid #31554b;border-radius:12px;background:#101f1b;padding:15px}
+.engine-title h3{color:#8bd1b1;font-size:16px}
+.eg{background:#14251f;border:1px solid #2a4b3e;border-radius:8px;padding:10px}
+.eg strong{color:#a5ddc0}.eg span{color:#87a99a}
+.engine-foot{background:#101f1b;border-color:#31554b;color:#a6d9bf}
+.outcome{background:#13251e;border-color:#2e5746;border-radius:11px}
+.outcome.no{background:#28191d;border-color:#59343b}
+.outcome h3{color:#e2e9eb}.outcome ul{color:#acb9bf}
+.feedback{background:#111e25;border-color:#304953;color:#afc4cc;border-radius:10px}
+.feedback b{color:#8bd1ca}
+.monthly-chart{background:#111920}
+.modal{background:rgba(0,0,0,.72)}
+.modalbox{background:#111920;color:#e2eaed;border-color:#34434c;box-shadow:0 25px 70px rgba(0,0,0,.4)}
+.field input,.field select{background:#0c141a;color:#e2eaed;border-color:#2b3b44}
+.toast{background:#17232b;color:#e2eaed;border-color:#3b4c56;box-shadow:0 8px 28px rgba(0,0,0,.3)}
+.footer{color:#71828c}
+.map-page{background:#111920;border-color:#28343d}
+.map-page .map-wrap{color:#e2eaed}
+.meta-card.ok{border-color:#31554b}.meta-card.warn{border-color:#5c4b2b}.meta-card.no{border-color:#59343b;background:#28191d}
+.meta-note{background:#111e25;border-color:#304953;color:#afc4cc}
+.empty{color:#8799a2}
+@media(min-width:1400px){.cards{grid-template-columns:repeat(6,minmax(0,1fr))}.hero{padding:26px 30px}}
+@media(max-width:900px){.wrap{padding:13px}.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.hero-grid{grid-template-columns:1fr}.hero{padding:19px}.hero h2{font-size:27px}.tabs{top:3px}.panel{padding:13px}}
+@media(max-width:480px){.cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.card{padding:11px;min-height:76px}.value{font-size:18px}.label{font-size:9px}.wrap{padding:9px}.hero-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.actions{width:100%}.actions .btn{flex:1}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
 </style></head><body>
 <div class="wrap">
 <header class="top"><div class="brand"><div class="logo">ZQ</div><div><h1>Zied Quant • Trading Intelligence</h1><div class="sub">Tableau de bord professionnel du système de trading quantitatif et de l’intelligence artificielle</div></div></div><div class="actions"><span class="status"><i id="dot" class="dot"></i><span id="conn">Disconnected</span></span><button class="btn" id="settingsBtn">⚙ Connexion</button><button class="btn primary" id="refreshBtn">↻ Actualiser</button></div></header>
