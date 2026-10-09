@@ -82,6 +82,7 @@
 <div class="card"><div class="label">Decision Audit Log</div><div id="advAudit" class="value">—</div><div id="advAuditNote" class="mini"></div></div>
 </div>
 <div class="grid layout"><section class="panel"><div class="panelhead"><h2>Fiabilité des stratégies</h2><span id="advStrategyMeta" class="mini">—</span></div><div class="tablewrap"><table><thead><tr><th>Stratégie</th><th>Trades</th><th>Win rate</th><th>P&amp;L</th><th>Profit factor</th><th>Fiabilité proxy</th><th>Statut</th></tr></thead><tbody id="advStrategyTable"></tbody></table></div></section><section class="panel"><div class="panelhead"><h2>Risque & concentration</h2><span id="advRiskMeta" class="mini">—</span></div><div id="advRiskTable" class="empty">Données portefeuille en attente.</div></section></div>
+<section class="panel" id="opsMonitor" style="margin-top:14px"><div class="panelhead"><div><h2>Autonomous Operations Monitor</h2><span class="mini">Surveillance de la fraîcheur des données, des connexions et des composants du dashboard</span></div><span id="opsOverall" class="badge yellow">En attente</span></div><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px"><div class="card"><div class="label">Synchronisation GitHub</div><div id="opsGithub" class="value">En attente</div><div id="opsGithubNote" class="mini">Aucune actualisation exécutée.</div></div><div class="card"><div class="label">Flux de marché OKX</div><div id="opsMarket" class="value">En attente</div><div id="opsMarketNote" class="mini">Aucune cotation reçue.</div></div><div class="card"><div class="label">Données portefeuille</div><div id="opsPortfolio" class="value">En attente</div><div id="opsPortfolioNote" class="mini">Vérification à la prochaine actualisation.</div></div><div class="card"><div class="label">Signaux & backtest</div><div id="opsAnalytics" class="value">En attente</div><div id="opsAnalyticsNote" class="mini">Vérification à la prochaine actualisation.</div></div></div><div id="opsActions" class="mini" style="margin-top:10px">Le moniteur signale les problèmes observables par cette page. Il ne démarre ni n'arrête le runner, n'exécute pas d'ordres et ne surveille pas GitHub Actions directement.</div></section>
 <section class="panel" style="margin-top:14px"><div class="panelhead"><div><h2>Strategy Autopsy</h2><span class="mini">Diagnostic des causes de sous-performance par stratégie</span></div><span id="autopsyMeta" class="mini">—</span></div><div class="tablewrap"><table><thead><tr><th>Stratégie</th><th>Diagnostic</th><th>Échantillon</th><th>P&amp;L récent vs précédent</th><th>Action suggérée</th></tr></thead><tbody id="autopsyTable"><tr><td colspan="5" class="empty">En attente des statistiques et transactions clôturées.</td></tr></tbody></table></div><div class="mini" style="margin-top:8px">Diagnostic indicatif fondé sur les statistiques chargées et l’historique des positions clôturées. Les signaux seuls ne prouvent pas une exécution; aucune stratégie n’est automatiquement désactivée.</div></section>
 <section class="panel" style="margin-top:14px"><div class="panelhead"><h2>Decision Audit Log • derniers signaux</h2><span id="advAuditMeta" class="mini">—</span></div><div class="tablewrap"><table><thead><tr><th>Date</th><th>Actif</th><th>Signal</th><th>Score</th><th>Probabilité</th><th>Régime</th><th>Stratégie</th><th>EV estimée</th><th>Décision</th></tr></thead><tbody id="advAuditTable"></tbody></table></div><div class="meta-note">Le journal reprend les signaux existants. Il ne prétend pas enregistrer les décisions internes absentes des fichiers source.</div></section>
 </main>
@@ -105,7 +106,7 @@ const STRATEGY_SOURCE = "okx_quant/strategy_engine.py";
 const DEFAULT_STRATEGY_NAMES = ["BREAKOUT", "PULLBACK", "STRUCTURE_SHIFT", "TREND_FOLLOW", "MEAN_REVERSION", "MOMENTUM_SPIKE", "SQUEEZE_BREAKOUT", "RELATIVE_STRENGTH", "RANGE_BOUNCE", "ACCUMULATION", "VWAP_RECLAIM", "FVG_RETEST", "EMA_CROSS", "BB_WALK", "MACD_DIVERGENCE", "LIQUIDITY_SWEEP_RECLAIM", "OPENING_RANGE_BREAKOUT", "FAILED_BREAKDOWN", "FUNDING_SQUEEZE", "CVD_ABSORPTION", "DONCHIAN_BREAKOUT", "SUPERTREND_FLIP", "INSIDE_BAR_NR7", "EMA_RIBBON_PULLBACK", "OBV_BREAKOUT", "PREV_DAY_HIGH_BREAK", "KELTNER_BREAKOUT", "RSI_THRUST", "HIGHER_LOW_BREAK", "ENGULFING_SUPPORT", "VOLUME_CLIMAX_REVERSAL", "ICHIMOKU_CLOUD_BREAK", "CANDLE_RESEARCH", "COMMON_FACTOR", "ATR_BREAKOUT", "ADX_DI_TREND", "RSI_DIVERGENCE", "STOCHASTIC_REVERSAL", "MFI_ACCUMULATION", "VWMA_RECLAIM", "ROC_MOMENTUM", "RANGE_EXPANSION", "PIVOT_RECLAIM", "FIB_RETRACEMENT_RECLAIM", "ATR_PULLBACK", "GAP_CONTINUATION", "PSAR_FLIP", "CMF_BREAKOUT", "AD_LINE_BREAKOUT", "ELDER_RAY_BREAKOUT", "AROON_CROSS", "CCI_REVERSAL", "WILLIAMS_R_REVERSAL", "HULL_MA_FLIP", "TRIX_CROSS", "VORTEX_CROSS"];
 let STRATEGY_NAMES = [...DEFAULT_STRATEGY_NAMES];
 
-const state={data:{},cfg:{owner:"zbenslimen991-alt",repo:"Zied",branch:"main",token:""},timer:null,okxTimer:null,okxPrices:{},okxUpdatedAt:null};
+const state={data:{},cfg:{owner:"zbenslimen991-alt",repo:"Zied",branch:"main",token:""},timer:null,okxTimer:null,okxPrices:{},okxUpdatedAt:null,opsLastRefreshAt:null,opsLastRefreshOk:0,opsLastRefreshErrors:[],opsRefreshInProgress:false,opsLastRefreshDurationMs:null,opsMarketError:null};
 
 // OKX public market data: no API key is required for ticker prices.
 // Private OKX account keys must NEVER be placed in this static dashboard.
@@ -148,8 +149,8 @@ async function fetchOkxPrices(){
     }catch(e){console.warn("OKX market feed:",type,e.message)}
   }
   state.okxPrices=next;
-  if(received)state.okxUpdatedAt=new Date().toISOString();
-  renderLivePortfolio();
+  if(received){state.okxUpdatedAt=new Date().toISOString();state.opsMarketError=null;}else if(ids.size){state.opsMarketError="Aucune cotation correspondante reçue";}
+  renderLivePortfolio();renderOperationsMonitor();
 }
 
 function livePositionPnl(x){
@@ -304,9 +305,13 @@ function decodeBase64(s){
 
 async function refresh(){  
   if(!state.cfg.owner||!state.cfg.repo){openModal();return}  
+  state.opsRefreshInProgress=true;state.opsLastRefreshErrors=[];state.opsMarketError=null;renderOperationsMonitor();
+  const opsStarted=Date.now();
   $("conn").textContent="Loading…";$("dot").className="dot";  
   const entries=Object.entries(FILES);let ok=0,errs=[];  
-  const names=await listRootNames();  
+  let names=[];
+  try{names=await listRootNames()}catch(e){state.opsLastRefreshErrors.push("Liste GitHub: "+String(e.message||e));}
+  
   for(const [k,p] of entries){try{state.data[k]=await getRotating(p,names);ok++}catch(e){errs.push(e.message);console.warn(e)}}  
   try{
     const source=await getText(STRATEGY_SOURCE);
@@ -318,14 +323,16 @@ async function refresh(){
   const addKeys=obj=>{if(obj&&typeof obj==="object"&&!Array.isArray(obj))Object.keys(obj).forEach(k=>{const n=String(k).trim().toUpperCase();if(n)discovered.add(n)})};
   addKeys(state.data.strategies);
   STRATEGY_NAMES=[...discovered];
+  state.opsLastRefreshAt=new Date().toISOString();state.opsLastRefreshOk=ok;state.opsLastRefreshErrors=[...state.opsLastRefreshErrors,...errs];state.opsLastRefreshDurationMs=Date.now()-opsStarted;state.opsRefreshInProgress=false;
   if(!ok){  
     $("conn").textContent="Connection failed";$("dot").className="dot bad";  
-    toast(errs[0]||"Could not read repository");  
+    renderOperationsMonitor();toast(errs[0]||state.opsLastRefreshErrors[0]||"Could not read repository");  
     return;  
   }  
   $("conn").textContent=`Connected • ${ok}/${entries.length} • ${state.cfg.repo}`;$("dot").className="dot ok";  
   renderAll();
   await fetchOkxPrices();
+  renderOperationsMonitor();
   if(errs.length){  
     toast(`Connected, but ${errs.length} file(s) failed.`);  
   } else toast("Dashboard updated");  
@@ -391,7 +398,39 @@ function calculatePeriodicPnL(p) {
   return { pnlDay, pnlWeek, pnlYear };
 }
 
-function renderAll(){renderOverview();renderPositions();renderSignals();renderStrategies();renderAI();renderMetaDecision();renderBacktest();renderMonthlyYearOptions();renderMonthlyPnL();renderAdvanced()}  
+function renderAll(){renderOverview();renderPositions();renderSignals();renderStrategies();renderAI();renderMetaDecision();renderBacktest();renderMonthlyYearOptions();renderMonthlyPnL();renderAdvanced();renderOperationsMonitor()}
+
+function renderOperationsMonitor(){
+ const $t=id=>$(id);
+ if(!$t("opsOverall"))return;
+ const now=Date.now(),errors=state.opsLastRefreshErrors||[],portfolio=state.data.portfolio||null;
+ const refreshAge=state.opsLastRefreshAt?Math.max(0,Math.floor((now-new Date(state.opsLastRefreshAt).getTime())/1000)):null;
+ const marketAge=state.okxUpdatedAt?Math.max(0,Math.floor((now-new Date(state.okxUpdatedAt).getTime())/1000)):null;
+ const stale=(age,limit)=>age===null||!Number.isFinite(age)||age>limit;
+ const set=(id,value,cls)=>{const el=$t(id);if(el){el.textContent=value;el.className="value"+(cls?" "+cls:"")}};
+ const githubBad=!state.opsLastRefreshAt||stale(refreshAge,900)||errors.length>0||state.opsLastRefreshOk===0;
+ set("opsGithub",state.opsRefreshInProgress?"Actualisation…":!state.opsLastRefreshAt?"Jamais":githubBad?"À vérifier":"Opérationnel",state.opsRefreshInProgress?"warn":githubBad?"bad":"good");
+ $t("opsGithubNote").textContent=state.opsLastRefreshAt?("Dernière lecture "+refreshAge+" s • "+state.opsLastRefreshOk+" fichiers lus"+(state.opsLastRefreshDurationMs!==null?" • "+(state.opsLastRefreshDurationMs/1000).toFixed(1)+" s":"")+(errors.length?" • "+errors.length+" erreur(s)":"")):"Aucune actualisation réussie enregistrée dans cette session.";
+ const marketBad=stale(marketAge,120)||!!state.opsMarketError;
+ set("opsMarket",state.opsMarketError?"Erreur flux":marketAge===null?"Aucune cotation":marketBad?"Données anciennes":"À jour",state.opsMarketError||marketBad?"warn":"good");
+ $t("opsMarketNote").textContent=marketAge===null?(state.opsMarketError?String(state.opsMarketError):"Aucun prix OKX reçu pour les instruments détenus."):( "Dernier prix reçu il y a "+marketAge+" s • source publique OKX"+(state.opsMarketError?" • "+state.opsMarketError:""));
+ const pValid=!!portfolio&&Array.isArray(portfolio.openPositions)&&Array.isArray(portfolio.pendingLimitOrders);
+ set("opsPortfolio",!portfolio?"Absent":pValid?"Chargé":"Partiel",!portfolio?"bad":pValid?"good":"warn");
+ $t("opsPortfolioNote").textContent=!portfolio?"Le fichier portefeuille n'a pas été chargé.":( (portfolio.openPositions||[]).length+" position(s) ouverte(s) • "+(portfolio.pendingLimitOrders||[]).length+" ordre(s) en attente • "+((portfolio.closedPositions||[]).length)+" clôturée(s)");
+ const sig=Array.isArray(state.data.signals)?state.data.signals:null,bt=state.data.backtest;
+ set("opsAnalytics",sig&&bt?"Chargé":sig||bt?"Partiel":"Absent",sig&&bt?"good":sig||bt?"warn":"bad");
+ $t("opsAnalyticsNote").textContent="Signaux : "+(sig?sig.length:"non chargés")+" • résultats Backtest : "+(bt&&typeof bt==="object"?Object.keys(bt).length:"non chargés")+" • ce contrôle confirme la présence, pas la validité des stratégies.";
+ const overallBad=githubBad||marketBad||!portfolio||!sig||!bt;
+ $t("opsOverall").textContent=state.opsRefreshInProgress?"Actualisation":overallBad?"Attention requise":"Surveillance OK";
+ $t("opsOverall").className="badge "+(state.opsRefreshInProgress?"yellow":overallBad?"yellow":"green");
+ const actions=[];
+ if(!state.opsLastRefreshAt||stale(refreshAge,900))actions.push("Relancer l'actualisation du dashboard.");
+ if(errors.length)actions.push("Vérifier les chemins/fichiers GitHub signalés par les erreurs.");
+ if(marketBad)actions.push("Vérifier l'accès réseau à OKX et la présence des instruments du portefeuille.");
+ if(!portfolio)actions.push("Vérifier la disponibilité du fichier portefeuille.");
+ $t("opsActions").textContent=(actions.length?"Actions recommandées : "+actions.join(" "):"Aucun problème de disponibilité détecté par les contrôles locaux.")+" Le statut GitHub Actions/runner n'est pas interrogé par cette page.";
+}
+  
 
 function normalizeProbability(v){
   const n=Number(v);
