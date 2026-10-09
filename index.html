@@ -395,7 +395,7 @@ function renderLivePortfolio(){
   const stamp=state.okxUpdatedAt?timefmt(state.okxUpdatedAt):"—";
   $("marketFeed").textContent=`OKX • ${stamp}`;
   $("marketFeed").className="value "+(state.okxUpdatedAt?"good":"warn");
-  renderPositions();
+  renderPositions();renderPortfolioAnalytics();
 }
   
   
@@ -601,7 +601,7 @@ function calculatePeriodicPnL(p) {
   return { pnlDay, pnlWeek, pnlYear };
 }
 
-function renderAll(){renderOverview();renderPositions();renderSignals();renderStrategies();renderAI();renderMetaDecision();renderBacktest();renderMonthlyYearOptions();renderMonthlyPnL();renderAdvanced();renderNews();renderOperationsMonitor()}
+function renderAll(){renderPortfolioAnalytics();renderOverview();renderPositions();renderSignals();renderStrategies();renderAI();renderMetaDecision();renderBacktest();renderMonthlyYearOptions();renderMonthlyPnL();renderAdvanced();renderNews();renderOperationsMonitor()}
 
 function renderNews(){
  const root=$("newsContent");if(!root)return;
