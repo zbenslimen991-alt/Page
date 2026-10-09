@@ -419,8 +419,10 @@ function cfgLoad(){
 
 function cfgSave(){  
   const x={owner:$("owner").value.trim(),repo:$("repo").value.trim(),branch:$("branch").value.trim()||"main",token:$("token").value.trim()};  
-  state.cfg=x;sessionStorage.setItem("ziedDashCfg",JSON.stringify(x));  
-  if($("remember").checked)localStorage.setItem("ziedDashCfg",JSON.stringify(x));else localStorage.removeItem("ziedDashCfg");  
+  if(!x.owner||!x.repo||!x.token)throw new Error("Owner, Repository et Token sont obligatoires.");
+  state.cfg=x;
+  try{sessionStorage.setItem("ziedDashCfg",JSON.stringify(x));}catch(e){console.warn("Session storage unavailable",e);}
+  try{if($("remember").checked)localStorage.setItem("ziedDashCfg",JSON.stringify(x));else localStorage.removeItem("ziedDashCfg");}catch(e){console.warn("Local storage unavailable",e);toast("Connexion conservée uniquement en mémoire pour cette session.");}
 }  
 
 function headers(){return state.cfg.token?{"Authorization":"Bearer "+state.cfg.token,"Accept":"application/vnd.github+json"}:{"Accept":"application/vnd.github+json"}}  
@@ -1091,7 +1093,7 @@ document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{showTab(b.dataset.ta
 window.addEventListener("hashchange",()=>showTab(location.hash.slice(1)||"overview"));  
 
 $("settingsBtn").onclick=openModal;$("closeModal").onclick=closeModal;$("refreshBtn").onclick=refresh;$("signalLimit").onchange=renderSignals;  
-$("saveConnect").onclick=()=>{try{cfgSave();closeModal();refresh()}catch(e){openModal();toast("Erreur de connexion: "+(e&&e.message?e.message:String(e)))}};  
+$("saveConnect").addEventListener("click",function(event){event.preventDefault();event.stopPropagation();try{cfgSave();closeModal();refresh()}catch(e){openModal();toast("Erreur de connexion: "+(e&&e.message?e.message:String(e)))}});  
 
 window.addEventListener("resize",()=>{if(state.data.portfolio){drawEquity(state.data.portfolio);renderMonthlyPnL()}});
 
