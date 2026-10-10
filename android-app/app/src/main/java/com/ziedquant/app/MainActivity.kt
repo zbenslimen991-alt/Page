@@ -604,6 +604,14 @@ private fun AiScreen(lang: String, data: Snapshot) {
             MetricCard(t(lang, "strategies"), data.strategyCount.toString(), Neon, Modifier.weight(1f))
             MetricCard(t(lang, "models"), data.modelCount.toString(), Purple, Modifier.weight(1f))
         }
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            MetricCard("Candle discovery", "${data.discoveryValidated}/${data.discoveryCandidates}", Cyan, Modifier.weight(1f))
+            MetricCard("Entry methods", data.entryMethodCount.toString(), Purple, Modifier.weight(1f))
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            MetricCard("Auto-tune cycles", data.autoTuneUpdates.toString(), Neon, Modifier.weight(1f))
+            MetricCard("Strategy universe", data.strategyUniverseCount.toString(), Cyan, Modifier.weight(1f))
+        }
         PanelCard {
             Text(t(lang, "risk"), color = White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
             listOf(
@@ -642,8 +650,12 @@ private fun NewsScreen(lang: String, data: Snapshot) {
         SectionTitle(t(lang, "news"), "${data.newsCount} sources · ${data.newsStatus}")
         PanelCard {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                MetricCard(t(lang, "newsSources"), data.newsCount.toString(), Cyan, Modifier.weight(1f))
-                MetricCard("Status", data.newsStatus, if (data.newsStatus.equals("OK", true)) Neon else Red, Modifier.weight(1f))
+                MetricCard(t(lang, "newsSources"), "${data.newsCount}/${data.newsTotalSources}", Cyan, Modifier.weight(1f))
+                MetricCard("Risk", data.newsRisk, if (data.newsRisk.equals("LOW", true)) Neon else Red, Modifier.weight(1f))
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                MetricCard("High impact", data.newsHighImpact.toString(), Purple, Modifier.weight(1f))
+                MetricCard("Health", data.newsStatus, if (data.newsStatus.equals("OK", true)) Neon else Red, Modifier.weight(1f))
             }
             Text("Last update: ${data.updatedAt}", color = Muted, fontSize = 10.sp)
         }
