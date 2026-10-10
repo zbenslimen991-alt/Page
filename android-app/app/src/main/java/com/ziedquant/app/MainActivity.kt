@@ -77,6 +77,7 @@ private fun t(lang: String, key: String): String =
 
 data class Market(val symbol: String, val price: Double, val change: Double, val volume: Double)
 data class Signal(val symbol: String, val side: String, val score: Double, val probability: Double, val price: Double, val target: Double, val stop: Double, val regime: String)
+data class PortfolioItem(val symbol: String, val side: String, val entry: Double, val mark: Double, val units: Double, val allocated: Double, val pnl: Double, val status: String)
 data class Snapshot(
     val markets: List<Market> = emptyList(),
     val signals: List<Signal> = emptyList(),
@@ -98,6 +99,9 @@ data class Snapshot(
     val portfolioOpenCount: Int = 0,
     val portfolioPendingCount: Int = 0,
     val portfolioClosedCount: Int = 0,
+    val openPositions: List<PortfolioItem> = emptyList(),
+    val pendingOrders: List<PortfolioItem> = emptyList(),
+    val closedTrades: List<PortfolioItem> = emptyList(),
     val backtestCount: Int = 0,
     val backtestSummary: List<Pair<String, String>> = emptyList(),
     val portfolioSummary: List<Pair<String, String>> = emptyList(),
@@ -243,6 +247,27 @@ private class DataClient(private val context: Context) {
         val openPositions = portfolioJson?.optJSONArray("openPositions")
         val pendingOrders = portfolioJson?.optJSONArray("pendingLimitOrders")
         val closedPositions = portfolioJson?.optJSONArray("closedPositions")
+        fun portfolioItems(arr: JSONArray?, status: String): List<PortfolioItem> {
+            if (arr == null) return emptyList()
+            return (0 until arr.length()).mapNotNull { i ->
+                val o = arr.optJSONObject(i) ?: return@mapNotNull null
+                val symbol = o.optString("instId", o.optString("symbol", "—"))
+                val side = o.optString("side", o.optString("positionSide", "LONG"))
+                val entry = o.optDouble("entryPrice", o.optDouble("avgEntryPrice", 0.0))
+                val units = o.optDouble("units", o.optDouble("size", 0.0))
+                val allocated = o.optDouble("allocatedUsd", o.optDouble("reservedUsd", 0.0))
+                val mark = prices.firstOrNull { it.symbol.equals(symbol, true) }?.price
+                    ?: o.optDouble("currentPrice", entry)
+                val direction = if (side.equals("short", true) || side.equals("sell", true)) -1.0 else 1.0
+                val pnl = if (status == "CLOSED") o.optDouble("realizedPnl", o.optDouble("pnl", o.optDouble("profit", o.optDouble("profitUsd", 0.0))))
+                    else if (entry > 0 && units > 0 && mark > 0) (mark - entry) * units * direction
+                    else o.optDouble("unrealizedPnl", o.optDouble("pnl", 0.0))
+                PortfolioItem(symbol, side, entry, mark, units, allocated, pnl, status)
+            }
+        }
+        val openItems = portfolioItems(openPositions, "OPEN")
+        val pendingItems = portfolioItems(pendingOrders, "PENDING")
+        val closedItems = portfolioItems(closedPositions, "CLOSED").takeLast(30).reversed()
         portfolioPairs += "Open positions" to (openPositions?.length() ?: 0).toString()
         portfolioPairs += "Pending orders" to (pendingOrders?.length() ?: 0).toString()
         portfolioPairs += "Closed positions" to (closedPositions?.length() ?: 0).toString()
@@ -299,6 +324,9 @@ private class DataClient(private val context: Context) {
             portfolioOpenCount = openPositions?.length() ?: 0,
             portfolioPendingCount = pendingOrders?.length() ?: 0,
             portfolioClosedCount = closedPositions?.length() ?: 0,
+            openPositions = openItems,
+            pendingOrders = pendingItems,
+            closedTrades = closedItems,
             backtestCount = backtestJson?.length() ?: 0,
             backtestSummary = backtestPairs,
             portfolioSummary = portfolioPairs.distinctBy { it.first }.take(12),
@@ -386,7 +414,7 @@ private fun ZiedQuantApp(context: Context) {
                     AppTab.HOME -> HomeScreen(lang, snapshot, loading, lastError, ::refresh, { tab = AppTab.SETTINGS })
                     AppTab.MARKETS -> MarketsScreen(lang, snapshot)
                     AppTab.SIGNALS -> SignalsScreen(lang, snapshot)
-                    AppTab.PORTFOLIO -> DataScreen(lang, t(lang, "portfolio"), Icons.Default.AccountBalanceWallet, snapshot.portfolioSummary, snapshot.errors, "portfolio_0001.json")
+                    AppTab.PORTFOLIO -> PortfolioScreen(lang, snapshot)
                     AppTab.BACKTEST -> DataScreen(lang, t(lang, "backtest"), Icons.Default.QueryStats, snapshot.backtestSummary, snapshot.errors, "backtest_results_0001.json")
                     AppTab.AI -> AiScreen(lang, snapshot)
                     AppTab.NEWS -> NewsScreen(lang, snapshot)
