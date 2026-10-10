@@ -172,9 +172,8 @@ private class DataClient(private val context: Context) {
         val discovery = json("candle_strategy_discovery.json") ?: JSONObject()
         val entryMethods = json("entry_method_memory.json") ?: JSONObject()
         val autoTune = json("auto_tuned_config.json") ?: JSONObject()
-        val strategySource = text("okx_quant/strategy_engine.py").orEmpty()
-        val strategyBlock = Regex("""STRATEGY_LABELS\s*=\s*\[([\s\S]*?)\]""").find(strategySource)?.groupValues?.getOrNull(1).orEmpty()
-        val strategyUniverse = Regex("""["']([A-Z][A-Z0-9_]+)["']""").findAll(strategyBlock).map { it.groupValues[1] }.distinct().toList()
+        val strategySource = text("okx_quant/strategy_registry.py").orEmpty()
+        val strategyUniverse = Regex("""@strategy\(\s*["']([^"']+)["']""").findAll(strategySource).map { it.groupValues[1] }.distinct().toList()
         val backtestText = text("backtest_results_0001.json")
         val backtestJson = backtestText?.let { runCatching { JSONObject(it) }.getOrNull() }
         val portfolioText = text("portfolio_0001.json")
