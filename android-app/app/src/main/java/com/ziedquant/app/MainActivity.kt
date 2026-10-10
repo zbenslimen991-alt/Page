@@ -605,6 +605,62 @@ private fun MiniValue(label: String, value: String, color: Color, modifier: Modi
 }
 
 @Composable
+private fun PortfolioScreen(lang: String, data: Snapshot) {
+    ScreenColumn {
+        SectionTitle(t(lang, "portfolio"), "OKX mark prices · open / pending / closed")
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            MetricCard("Open", data.portfolioOpenCount.toString(), Neon, Modifier.weight(1f))
+            MetricCard("Pending", data.portfolioPendingCount.toString(), Purple, Modifier.weight(1f))
+            MetricCard("Closed", data.portfolioClosedCount.toString(), Cyan, Modifier.weight(1f))
+        }
+        PanelCard {
+            SectionTitle("Open positions")
+            if (data.openPositions.isEmpty()) EmptyText(t(lang, "noData"))
+            data.openPositions.forEach { PortfolioItemRow(it) }
+        }
+        PanelCard {
+            SectionTitle("Pending orders")
+            if (data.pendingOrders.isEmpty()) EmptyText(t(lang, "noData"))
+            data.pendingOrders.forEach { PortfolioItemRow(it) }
+        }
+        PanelCard {
+            SectionTitle("Recent closed trades")
+            if (data.closedTrades.isEmpty()) EmptyText(t(lang, "noData"))
+            data.closedTrades.forEach { PortfolioItemRow(it) }
+        }
+        PanelCard {
+            SectionTitle("Portfolio summary", "portfolio_0001.json")
+            data.portfolioSummary.forEach { (k, v) ->
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(k, color = Muted, fontSize = 11.sp, modifier = Modifier.weight(1f))
+                    Text(v.take(64), color = White, fontSize = 11.sp, modifier = Modifier.weight(1f))
+                }
+                HorizontalDivider(color = Color(0xFF202B3A))
+            }
+        }
+    }
+}
+
+@Composable
+private fun PortfolioItemRow(item: PortfolioItem) {
+    Column(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+            Column(Modifier.weight(1f)) {
+                Text(item.symbol, color = White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                Text("${item.side} · ${item.status}", color = Muted, fontSize = 10.sp)
+            }
+            Text((if (item.pnl >= 0) "+" else "") + String.format("%.2f", item.pnl), color = if (item.pnl >= 0) Neon else Red, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            MiniValue("Entry", price(item.entry), White, Modifier.weight(1f))
+            MiniValue("Mark", price(item.mark), Cyan, Modifier.weight(1f))
+            MiniValue("Allocated", String.format("%.2f", item.allocated), Purple, Modifier.weight(1f))
+        }
+        HorizontalDivider(color = Color(0xFF202B3A))
+    }
+}
+
+@Composable
 private fun DataScreen(lang: String, title: String, icon: androidx.compose.ui.graphics.vector.ImageVector, rows: List<Pair<String, String>>, errors: List<String>, file: String) {
     ScreenColumn {
         SectionTitle(title, file)
