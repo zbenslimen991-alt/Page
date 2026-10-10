@@ -84,9 +84,20 @@ data class Snapshot(
     val strategyNames: List<String> = emptyList(),
     val strategyStats: List<Triple<String, Double, Double>> = emptyList(),
     val newsCount: Int = 0,
+    val newsTotalSources: Int = 0,
+    val newsHighImpact: Int = 0,
+    val newsRisk: String = "—",
     val newsStatus: String = "—",
     val newsHeadlines: List<String> = emptyList(),
     val modelCount: Int = 0,
+    val discoveryCandidates: Int = 0,
+    val discoveryValidated: Int = 0,
+    val entryMethodCount: Int = 0,
+    val autoTuneUpdates: Int = 0,
+    val strategyUniverseCount: Int = 0,
+    val portfolioOpenCount: Int = 0,
+    val portfolioPendingCount: Int = 0,
+    val portfolioClosedCount: Int = 0,
     val backtestCount: Int = 0,
     val backtestSummary: List<Pair<String, String>> = emptyList(),
     val portfolioSummary: List<Pair<String, String>> = emptyList(),
@@ -154,6 +165,12 @@ private class DataClient(private val context: Context) {
         val signalArray = array("signal_history_0001.json") ?: JSONArray()
         val news = json("news_intelligence.json") ?: JSONObject()
         val ml = json("ml_model_memory_0001.json") ?: JSONObject()
+        val discovery = json("candle_strategy_discovery.json") ?: JSONObject()
+        val entryMethods = json("entry_method_memory.json") ?: JSONObject()
+        val autoTune = json("auto_tuned_config.json") ?: JSONObject()
+        val strategySource = text("okx_quant/strategy_engine.py").orEmpty()
+        val strategyBlock = Regex("""STRATEGY_LABELS\\s*=\\s*\\[([\\s\\S]*?)\\]""").find(strategySource)?.groupValues?.getOrNull(1).orEmpty()
+        val strategyUniverse = Regex("""["']([A-Z][A-Z0-9_]+)["']""").findAll(strategyBlock).map { it.groupValues[1] }.distinct().toList()
         val backtestText = text("backtest_results_0001.json")
         val backtestJson = backtestText?.let { runCatching { JSONObject(it) }.getOrNull() }
         val portfolioText = text("portfolio_0001.json")
@@ -198,6 +215,14 @@ private class DataClient(private val context: Context) {
         val modelCount = ml.optJSONObject("models")?.length() ?: 0
         val feeds = news.optJSONArray("feedStatus")
         val headlines = mutableListOf<String>()
+        val articles = news.optJSONArray("articles")
+        if (articles != null) {
+            for (i in 0 until minOf(articles.length(), 8)) {
+                val article = articles.optJSONObject(i) ?: continue
+                val title = article.optString("title")
+                if (title.isNotBlank() && title != "null") headlines += title
+            }
+        }
         fun collectTitles(value: Any?, depth: Int = 0) {
             if (depth > 4 || headlines.size >= 8 || value == null) return
             when (value) {
@@ -213,8 +238,21 @@ private class DataClient(private val context: Context) {
                 is JSONArray -> for (i in 0 until minOf(value.length(), 100)) collectTitles(value.opt(i), depth + 1)
             }
         }
-        collectTitles(news)
+        if (headlines.isEmpty()) collectTitles(news)
         val portfolioPairs = mutableListOf<Pair<String, String>>()
+        val openPositions = portfolioJson?.optJSONArray("openPositions")
+        val pendingOrders = portfolioJson?.optJSONArray("pendingLimitOrders")
+        val closedPositions = portfolioJson?.optJSONArray("closedPositions")
+        portfolioPairs += "Open positions" to (openPositions?.length() ?: 0).toString()
+        portfolioPairs += "Pending orders" to (pendingOrders?.length() ?: 0).toString()
+        portfolioPairs += "Closed positions" to (closedPositions?.length() ?: 0).toString()
+        portfolioPairs += "Initial capital" to String.format("%.2f", portfolioJson?.optDouble("initialCapital", 0.0) ?: 0.0)
+        var realizedPnl = 0.0
+        if (closedPositions != null) for (i in 0 until closedPositions.length()) {
+            val trade = closedPositions.optJSONObject(i) ?: continue
+            realizedPnl += trade.optDouble("pnlUsd", trade.optDouble("realizedPnl", trade.optDouble("pnl", 0.0)))
+        }
+        portfolioPairs += "Realized P&L (available fields)" to String.format("%.2f", realizedPnl)
         fun addPrimitiveFields(obj: JSONObject?, depth: Int = 0) {
             if (obj == null || depth > 2 || portfolioPairs.size >= 12) return
             val it = obj.keys()
@@ -229,16 +267,35 @@ private class DataClient(private val context: Context) {
         addPrimitiveFields(portfolioJson)
         val backtestPairs = mutableListOf<Pair<String, String>>()
         addPrimitiveFields(backtestJson, 0)
+        val history = autoTune.optJSONArray("history")
+        val candidates = discovery.optJSONArray("candidates")
+        var validated = 0
+        if (candidates != null) for (i in 0 until candidates.length()) {
+            if (candidates.optJSONObject(i)?.optBoolean("validated", false) == true) validated++
+        }
         val newsCount = news.optInt("sourceCountOk", news.optInt("sourceCount", feeds?.length() ?: 0))
+        val newsTotal = news.optInt("sourceCount", feeds?.length() ?: newsCount)
+        val health = news.optJSONObject("health")
         return Snapshot(
-            markets = prices, signals = signals, strategyCount = names.size,
-            strategyNames = names.sorted(),
+            markets = prices, signals = signals, strategyCount = maxOf(names.size, strategyUniverse.size),
+            strategyNames = (strategyUniverse + names).distinct().sorted(),
             strategyStats = statRows.sortedByDescending { it.second }.take(12),
-            newsCount = newsCount, newsStatus = news.optString("status", "—"),
+            newsCount = newsCount, newsTotalSources = newsTotal,
+            newsHighImpact = news.optInt("highImpactCount", 0),
+            newsRisk = news.optString("riskLevel", "—"),
+            newsStatus = health?.optString("status", news.optString("status", "—")) ?: news.optString("status", "—"),
             newsHeadlines = headlines.distinct().take(8), modelCount = modelCount,
+            discoveryCandidates = candidates?.length() ?: 0,
+            discoveryValidated = validated,
+            entryMethodCount = entryMethods.optJSONObject("stats")?.length() ?: 0,
+            autoTuneUpdates = history?.length() ?: 0,
+            strategyUniverseCount = strategyUniverse.size,
+            portfolioOpenCount = openPositions?.length() ?: 0,
+            portfolioPendingCount = pendingOrders?.length() ?: 0,
+            portfolioClosedCount = closedPositions?.length() ?: 0,
             backtestCount = backtestJson?.length() ?: 0,
             backtestSummary = backtestPairs,
-            portfolioSummary = portfolioPairs,
+            portfolioSummary = portfolioPairs.distinctBy { it.first }.take(12),
             updatedAt = news.optString("updatedAt", "—"),
             errors = errors.distinct().take(8)
         )
