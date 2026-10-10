@@ -102,9 +102,9 @@ class MainActivity : ComponentActivity() {
 }
 
 private fun securePrefs(context: Context) = EncryptedSharedPreferences.create(
-    context,
     "zied_quant_secure",
     MasterKey.Builder(context).setKeyScheme(MasterKey.KeyScheme.AES256_GCM).build(),
+    context,
     EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
     EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
 )
