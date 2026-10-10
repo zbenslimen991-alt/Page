@@ -7,6 +7,10 @@ on:
       - "android-app/**"
       - ".github/workflows/build-android-apk.yml"
 
+concurrency:
+  group: zied-quant-android-build-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
