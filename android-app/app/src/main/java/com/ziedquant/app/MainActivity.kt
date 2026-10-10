@@ -253,20 +253,26 @@ private class DataClient(private val context: Context) {
             realizedPnl += trade.optDouble("pnlUsd", trade.optDouble("realizedPnl", trade.optDouble("pnl", 0.0)))
         }
         portfolioPairs += "Realized P&L (available fields)" to String.format("%.2f", realizedPnl)
-        fun addPrimitiveFields(obj: JSONObject?, depth: Int = 0) {
-            if (obj == null || depth > 2 || portfolioPairs.size >= 12) return
+        fun addPrimitiveFields(
+            obj: JSONObject?,
+            target: MutableList<Pair<String, String>>,
+            depth: Int = 0,
+            prefix: String = ""
+        ) {
+            if (obj == null || depth > 3 || target.size >= 12) return
             val it = obj.keys()
-            while (it.hasNext() && portfolioPairs.size < 12) {
+            while (it.hasNext() && target.size < 12) {
                 val k = it.next()
                 val v = obj.opt(k)
+                val fullKey = if (prefix.isBlank()) k else "$prefix.$k"
                 if (v is Number || v is String || v is Boolean) {
-                    if (k.length <= 36 && v.toString().length <= 50) portfolioPairs += k to v.toString()
-                } else if (v is JSONObject) addPrimitiveFields(v, depth + 1)
+                    if (fullKey.length <= 60 && v.toString().length <= 64) target += fullKey to v.toString()
+                } else if (v is JSONObject) addPrimitiveFields(v, target, depth + 1, fullKey)
             }
         }
-        addPrimitiveFields(portfolioJson)
+        addPrimitiveFields(portfolioJson, portfolioPairs)
         val backtestPairs = mutableListOf<Pair<String, String>>()
-        addPrimitiveFields(backtestJson, 0)
+        addPrimitiveFields(backtestJson, backtestPairs)
         val history = autoTune.optJSONArray("history")
         val candidates = discovery.optJSONArray("candidates")
         var validated = 0
