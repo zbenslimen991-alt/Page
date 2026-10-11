@@ -477,22 +477,20 @@ private fun ZiedQuantApp(context: Context) {
                             colors = NavigationBarItemDefaults.colors(selectedIconColor = Neon, selectedTextColor = Neon, indicatorColor = Color(0xFF18372F), unselectedIconColor = Muted, unselectedTextColor = Muted)
                         )
                     }
-                    Box {
-                        NavigationBarItem(
-                            selected = tab in listOf(AppTab.BACKTEST, AppTab.AI, AppTab.NEWS, AppTab.SETTINGS),
-                            onClick = { moreExpanded = true },
-                            icon = { Icon(Icons.Default.GridView, contentDescription = null, modifier = Modifier.size(21.dp)) },
-                            label = { Text(if (lang == "ar") "المزيد" else if (lang == "fr") "Plus" else if (lang == "zh") "更多" else if (lang == "tr") "Daha" else if (lang == "es") "Más" else "More", fontSize = 10.sp) },
-                            colors = NavigationBarItemDefaults.colors(selectedIconColor = Neon, selectedTextColor = Neon, indicatorColor = Color(0xFF18372F), unselectedIconColor = Muted, unselectedTextColor = Muted)
-                        )
-                        DropdownMenu(expanded = moreExpanded, onDismissRequest = { moreExpanded = false }) {
-                            listOf(AppTab.BACKTEST, AppTab.AI, AppTab.NEWS, AppTab.SETTINGS).forEach { item ->
-                                DropdownMenuItem(
-                                    text = { Text(t(lang, item.name.lowercase())) },
-                                    leadingIcon = { Icon(tabIcons[item] ?: Icons.Default.Dashboard, null) },
-                                    onClick = { tab = item; moreExpanded = false }
-                                )
-                            }
+                    NavigationBarItem(
+                        selected = tab in listOf(AppTab.BACKTEST, AppTab.AI, AppTab.NEWS, AppTab.SETTINGS),
+                        onClick = { moreExpanded = true },
+                        icon = { Icon(Icons.Default.GridView, contentDescription = null, modifier = Modifier.size(21.dp)) },
+                        label = { Text(if (lang == "ar") "المزيد" else if (lang == "fr") "Plus" else if (lang == "zh") "更多" else if (lang == "tr") "Daha" else if (lang == "es") "Más" else "More", fontSize = 10.sp) },
+                        colors = NavigationBarItemDefaults.colors(selectedIconColor = Neon, selectedTextColor = Neon, indicatorColor = Color(0xFF18372F), unselectedIconColor = Muted, unselectedTextColor = Muted)
+                    )
+                    DropdownMenu(expanded = moreExpanded, onDismissRequest = { moreExpanded = false }) {
+                        listOf(AppTab.BACKTEST, AppTab.AI, AppTab.NEWS, AppTab.SETTINGS).forEach { item ->
+                            DropdownMenuItem(
+                                text = { Text(t(lang, item.name.lowercase())) },
+                                leadingIcon = { Icon(tabIcons[item] ?: Icons.Default.Dashboard, null) },
+                                onClick = { tab = item; moreExpanded = false }
+                            )
                         }
                     }
                 }
