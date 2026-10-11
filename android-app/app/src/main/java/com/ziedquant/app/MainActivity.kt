@@ -131,7 +131,7 @@ class MainActivity : ComponentActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 SIGNAL_CHANNEL_ID,
-                "Zied Quant trading alerts",
+                "Zied quant traide alerts",
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "Alerts for newly detected trading signals"
@@ -153,7 +153,7 @@ class MainActivity : ComponentActivity() {
             @Suppress("DEPRECATION")
             android.app.Notification.Builder(this)
         }.setSmallIcon(android.R.drawable.stat_notify_more)
-            .setContentTitle("Zied Quant • ${signal.side} ${signal.symbol}")
+            .setContentTitle("Zied quant traide • ${signal.side} ${signal.symbol}")
             .setContentText("Score ${signal.score} • Prix ${signal.price} • TP ${signal.target} • SL ${signal.stop}")
             .setStyle(android.app.Notification.BigTextStyle().bigText(
                 "Nouvelle signal détecté: ${signal.symbol} / ${signal.side}\n" +
@@ -216,21 +216,29 @@ private class DataClient(private val context: Context) {
         fun text(path: String): String? = try { repoFile(owner, repo, branch, path, token) } catch (e: Exception) {
             errors += "$path: ${e.message ?: "error"}"; null
         }
+        fun textAny(vararg paths: String): String? {
+            for (path in paths) {
+                try { return repoFile(owner, repo, branch, path, token) } catch (_: Exception) { /* try the legacy filename */ }
+            }
+            errors += "${paths.joinToString(" / ")}: unavailable"
+            return null
+        }
         fun json(path: String): JSONObject? = text(path)?.let { runCatching { JSONObject(it) }.getOrNull() }
-        fun array(path: String): JSONArray? = text(path)?.let { runCatching { JSONArray(it) }.getOrNull() }
+        fun jsonAny(vararg paths: String): JSONObject? = textAny(*paths)?.let { runCatching { JSONObject(it) }.getOrNull() }
+        fun arrayAny(vararg paths: String): JSONArray? = textAny(*paths)?.let { runCatching { JSONArray(it) }.getOrNull() }
 
-        val stats = json("strategy_stats_0001.json") ?: JSONObject()
-        val signalArray = array("signal_history_0001.json") ?: JSONArray()
+        val stats = jsonAny("strategy_stats_0001.json", "strategy_stats.json") ?: JSONObject()
+        val signalArray = arrayAny("signal_history_0001.json", "signal_history.json") ?: JSONArray()
         val news = json("news_intelligence.json") ?: JSONObject()
-        val ml = json("ml_model_memory_0001.json") ?: JSONObject()
+        val ml = jsonAny("ml_model_memory_0001.json", "ml_model_memory.json") ?: JSONObject()
         val discovery = json("candle_strategy_discovery.json") ?: JSONObject()
         val entryMethods = json("entry_method_memory.json") ?: JSONObject()
         val autoTune = json("auto_tuned_config.json") ?: JSONObject()
         val strategySource = text("okx_quant/strategy_registry.py").orEmpty()
         val strategyUniverse = Regex("""@strategy\(\s*["']([^"']+)["']""").findAll(strategySource).map { it.groupValues[1] }.distinct().toList()
-        val backtestText = text("backtest_results_0001.json")
+        val backtestText = textAny("backtest_results_0001.json", "backtest_results.json")
         val backtestJson = backtestText?.let { runCatching { JSONObject(it) }.getOrNull() }
-        val portfolioText = text("portfolio_0001.json")
+        val portfolioText = textAny("portfolio_0001.json", "portfolio.json")
         val portfolioJson = portfolioText?.let { runCatching { JSONObject(it) }.getOrNull() }
         val prices = runCatching {
             val raw = JSONObject(get("https://www.okx.com/api/v5/market/tickers?instType=SPOT"))
@@ -452,8 +460,8 @@ private fun ZiedQuantApp(context: Context) {
                                 Text("Z", color = Bg, fontSize = 23.sp, fontWeight = FontWeight.Black)
                             }
                             Column {
-                                Text("ZIED QUANT", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
-                                Text("AI TRADING SYSTEM", fontSize = 9.sp, color = Muted, letterSpacing = 1.3.sp)
+                                Text("ZIED QUANT TRAIDE", fontSize = 15.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
+                                Text("LIVE QUANT • AI • RISK", fontSize = 9.sp, color = Muted, letterSpacing = 1.3.sp)
                             }
                         }
                     },
