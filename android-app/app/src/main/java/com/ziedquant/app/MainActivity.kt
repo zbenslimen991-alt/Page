@@ -341,6 +341,7 @@ private fun ZiedQuantApp(context: Context) {
     val prefs = remember { securePrefs(context) }
     var lang by remember { mutableStateOf(prefs.getString("language", "fr") ?: "fr") }
     var tab by remember { mutableStateOf(AppTab.HOME) }
+    var moreExpanded by remember { mutableStateOf(false) }
     var snapshot by remember { mutableStateOf(Snapshot()) }
     var loading by remember { mutableStateOf(false) }
     var lastError by remember { mutableStateOf("") }
@@ -395,15 +396,33 @@ private fun ZiedQuantApp(context: Context) {
             },
             bottomBar = {
                 NavigationBar(containerColor = Color(0xFF0C121C), contentColor = Muted) {
-                    val visibleTabs = listOf(AppTab.HOME, AppTab.MARKETS, AppTab.SIGNALS, AppTab.PORTFOLIO, AppTab.BACKTEST, AppTab.AI, AppTab.NEWS, AppTab.SETTINGS)
-                    visibleTabs.forEach { item ->
+                    val primaryTabs = listOf(AppTab.HOME, AppTab.MARKETS, AppTab.SIGNALS, AppTab.PORTFOLIO)
+                    primaryTabs.forEach { item ->
                         NavigationBarItem(
                             selected = tab == item,
                             onClick = { tab = item },
-                            icon = { Icon(tabIcons[item] ?: Icons.Default.Dashboard, contentDescription = null, modifier = Modifier.size(19.dp)) },
-                            label = { Text(t(lang, item.name.lowercase()), fontSize = 9.sp, maxLines = 1) },
+                            icon = { Icon(tabIcons[item] ?: Icons.Default.Dashboard, contentDescription = null, modifier = Modifier.size(21.dp)) },
+                            label = { Text(t(lang, item.name.lowercase()), fontSize = 10.sp, maxLines = 1) },
                             colors = NavigationBarItemDefaults.colors(selectedIconColor = Neon, selectedTextColor = Neon, indicatorColor = Color(0xFF18372F), unselectedIconColor = Muted, unselectedTextColor = Muted)
                         )
+                    }
+                    Box {
+                        NavigationBarItem(
+                            selected = tab in listOf(AppTab.BACKTEST, AppTab.AI, AppTab.NEWS, AppTab.SETTINGS),
+                            onClick = { moreExpanded = true },
+                            icon = { Icon(Icons.Default.GridView, contentDescription = null, modifier = Modifier.size(21.dp)) },
+                            label = { Text(if (lang == "ar") "المزيد" else if (lang == "fr") "Plus" else if (lang == "zh") "更多" else if (lang == "tr") "Daha" else if (lang == "es") "Más" else "More", fontSize = 10.sp) },
+                            colors = NavigationBarItemDefaults.colors(selectedIconColor = Neon, selectedTextColor = Neon, indicatorColor = Color(0xFF18372F), unselectedIconColor = Muted, unselectedTextColor = Muted)
+                        )
+                        DropdownMenu(expanded = moreExpanded, onDismissRequest = { moreExpanded = false }) {
+                            listOf(AppTab.BACKTEST, AppTab.AI, AppTab.NEWS, AppTab.SETTINGS).forEach { item ->
+                                DropdownMenuItem(
+                                    text = { Text(t(lang, item.name.lowercase())) },
+                                    leadingIcon = { Icon(tabIcons[item] ?: Icons.Default.Dashboard, null) },
+                                    onClick = { tab = item; moreExpanded = false }
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -550,14 +569,36 @@ private fun MarketRow(m: Market) {
 
 @Composable
 private fun MarketsScreen(lang: String, data: Snapshot) {
+    var query by remember { mutableStateOf("") }
+    var sortByChange by remember { mutableStateOf(false) }
+    val filtered = data.markets.filter { it.symbol.contains(query.trim(), ignoreCase = true) }
+        .let { rows -> if (sortByChange) rows.sortedByDescending { it.change } else rows }
     ScreenColumn {
         SectionTitle(t(lang, "markets"), t(lang, "live"))
+        OutlinedTextField(
+            value = query,
+            onValueChange = { query = it },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            placeholder = { Text(if (lang == "ar") "ابحث عن عملة مثل BTC" else if (lang == "fr") "Rechercher une paire, ex. BTC" else "Search a pair, e.g. BTC") },
+            leadingIcon = { Icon(Icons.Default.Search, null, tint = Muted) },
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Neon, unfocusedBorderColor = Color(0xFF263141),
+                focusedTextColor = White, unfocusedTextColor = White, cursorColor = Neon
+            )
+        )
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilterChip(selected = !sortByChange, onClick = { sortByChange = false }, label = { Text(if (lang == "ar") "حسب الحجم" else if (lang == "fr") "Volume" else "Volume") })
+            FilterChip(selected = sortByChange, onClick = { sortByChange = true }, label = { Text(if (lang == "ar") "أعلى تغير" else if (lang == "fr") "Variation" else "Top change") })
+            Spacer(Modifier.weight(1f))
+            Text("${filtered.size}", color = Muted, modifier = Modifier.align(Alignment.CenterVertically), fontSize = 12.sp)
+        }
         PanelCard {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Actif", color = Muted, fontSize = 10.sp)
-                Text("Prix", color = Muted, fontSize = 10.sp)
+                Text(if (lang == "ar") "الأصل" else if (lang == "fr") "Actif" else "Asset", color = Muted, fontSize = 10.sp)
+                Text(if (lang == "ar") "السعر" else if (lang == "fr") "Prix" else "Price", color = Muted, fontSize = 10.sp)
             }
-            if (data.markets.isEmpty()) EmptyText(t(lang, "noData")) else data.markets.forEach { MarketRow(it) }
+            if (filtered.isEmpty()) EmptyText(t(lang, "noData")) else filtered.forEach { MarketRow(it) }
         }
     }
 }
@@ -725,9 +766,23 @@ private fun AiScreen(lang: String, data: Snapshot) {
             if (data.strategyStats.isEmpty()) EmptyText(t(lang, "noData"))
             data.strategyStats.forEach { (name, win, pf) ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(name, color = White, fontSize = 11.sp)
+                    Text(name, color = White, fontSize = 11.sp, modifier = Modifier.weight(1f))
                     Text("WR ${"%.1f".format(win)}% · PF ${"%.2f".format(pf)}", color = if (pf >= 1) Neon else Red, fontSize = 10.sp)
                 }
+            }
+        }
+        PanelCard {
+            SectionTitle(
+                if (lang == "ar") "كل الاستراتيجيات المسجلة" else if (lang == "fr") "Toutes les stratégies enregistrées" else "All registered strategies",
+                "${data.strategyNames.size} · strategy_registry.py"
+            )
+            if (data.strategyNames.isEmpty()) EmptyText(t(lang, "noData"))
+            else data.strategyNames.forEachIndexed { index, name ->
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text((index + 1).toString().padStart(2, '0'), color = Neon, fontSize = 10.sp, modifier = Modifier.width(28.dp))
+                    Text(name, color = White, fontSize = 12.sp, modifier = Modifier.weight(1f))
+                }
+                HorizontalDivider(color = Color(0xFF202B3A))
             }
         }
     }
