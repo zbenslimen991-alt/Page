@@ -1,6 +1,11 @@
 package com.ziedquant.app
 
+import android.Manifest
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.util.Base64
 import androidx.activity.ComponentActivity
@@ -31,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -112,7 +118,55 @@ data class Snapshot(
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        createSignalNotificationChannel()
+        if (Build.VERSION.SDK_INT >= 33 &&
+            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) {
+            requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 3001)
+        }
         setContent { ZiedQuantApp(this) }
+    }
+
+    private fun createSignalNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                SIGNAL_CHANNEL_ID,
+                "Zied Quant trading alerts",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Alerts for newly detected trading signals"
+                enableVibration(true)
+            }
+            getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
+        }
+    }
+
+    fun notifyNewSignal(signal: Signal) {
+        if (Build.VERSION.SDK_INT >= 33 &&
+            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) return
+        val manager = getSystemService(NotificationManager::class.java)
+        val id = (signal.symbol + signal.side + signal.target.toString()).hashCode() and 0x7fffffff
+        val notification = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            android.app.Notification.Builder(this, SIGNAL_CHANNEL_ID)
+        } else {
+            @Suppress("DEPRECATION")
+            android.app.Notification.Builder(this)
+        }.setSmallIcon(android.R.drawable.stat_notify_more)
+            .setContentTitle("Zied Quant • ${signal.side} ${signal.symbol}")
+            .setContentText("Score ${signal.score} • Prix ${signal.price} • TP ${signal.target} • SL ${signal.stop}")
+            .setStyle(android.app.Notification.BigTextStyle().bigText(
+                "Nouvelle signal détecté: ${signal.symbol} / ${signal.side}\n" +
+                    "Score: ${signal.score} • Probabilité: ${signal.probability}%\n" +
+                    "Prix: ${signal.price} • TP: ${signal.target} • SL: ${signal.stop}"
+            ))
+            .setAutoCancel(true)
+            .build()
+        manager.notify(id, notification)
+    }
+
+    companion object {
+        const val SIGNAL_CHANNEL_ID = "zied_quant_signals"
     }
 }
 
@@ -349,6 +403,7 @@ private fun ZiedQuantApp(context: Context) {
     var repo by remember { mutableStateOf(prefs.getString("repo", "Zied") ?: "Zied") }
     var branch by remember { mutableStateOf(prefs.getString("branch", "main") ?: "main") }
     var token by remember { mutableStateOf(prefs.getString("token", "") ?: "") }
+    var hasCompletedInitialLoad by remember { mutableStateOf(false) }
 
     fun refresh() {
         loading = true
@@ -356,16 +411,32 @@ private fun ZiedQuantApp(context: Context) {
         Thread {
             val result = runCatching { DataClient(context).load() }
             (context as? ComponentActivity)?.runOnUiThread {
-                result.onSuccess {
-                    snapshot = it
-                    lastError = it.errors.takeIf { e -> e.size >= 6 }?.joinToString("\n") ?: ""
+                result.onSuccess { fresh ->
+                    if (hasCompletedInitialLoad) {
+                        val previousKeys = snapshot.signals.map { s ->
+                            "${s.symbol}|${s.side}|${s.target}|${s.stop}"
+                        }.toSet()
+                        fresh.signals
+                            .filter { s -> "${s.symbol}|${s.side}|${s.target}|${s.stop}" !in previousKeys }
+                            .take(5)
+                            .forEach { signal -> (context as? MainActivity)?.notifyNewSignal(signal) }
+                    }
+                    snapshot = fresh
+                    hasCompletedInitialLoad = true
+                    lastError = fresh.errors.takeIf { e -> e.size >= 6 }?.joinToString("\n") ?: ""
                 }.onFailure { lastError = it.message ?: "Unknown error" }
                 loading = false
             }
         }.start()
     }
 
-    LaunchedEffect(Unit) { refresh() }
+    LaunchedEffect(Unit) {
+        refresh()
+        while (true) {
+            delay(60_000L)
+            if (!loading) refresh()
+        }
+    }
 
     MaterialTheme(colorScheme = darkColorScheme(
         primary = Neon, secondary = Purple, background = Bg, surface = Panel,
