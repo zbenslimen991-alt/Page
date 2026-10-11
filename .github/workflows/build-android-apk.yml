@@ -1,11 +1,22 @@
 name: Build Zied Quant Android APK
 
 on:
-  workflow_dispatch:
+  # Build automatically whenever native Android app sources change.
   push:
+    branches:
+      - main
     paths:
       - "android-app/**"
       - ".github/workflows/build-android-apk.yml"
+  pull_request:
+    paths:
+      - "android-app/**"
+      - ".github/workflows/build-android-apk.yml"
+  # Daily health build verifies that the APK can still be compiled even
+  # when no source changes were pushed.
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
 
 concurrency:
   group: zied-quant-android-build-${{ github.ref }}
