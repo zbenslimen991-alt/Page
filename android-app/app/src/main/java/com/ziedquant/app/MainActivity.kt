@@ -57,7 +57,7 @@ private val Red = Color(0xFFFF6376)
 private val Muted = Color(0xFF8C9BAD)
 private val White = Color(0xFFF3F7FB)
 
-private enum class AppTab { HOME, MARKETS, SIGNALS, PORTFOLIO, BACKTEST, AI, NEWS, SETTINGS }
+private enum class AppTab { HOME, MARKETS, SIGNALS, PORTFOLIO, BACKTEST, AI, RISK, NEWS, SETTINGS }
 private val tabIcons = mapOf(
     AppTab.HOME to Icons.Default.Dashboard,
     AppTab.MARKETS to Icons.Default.ShowChart,
@@ -65,17 +65,18 @@ private val tabIcons = mapOf(
     AppTab.PORTFOLIO to Icons.Default.AccountBalanceWallet,
     AppTab.BACKTEST to Icons.Default.QueryStats,
     AppTab.AI to Icons.Default.Psychology,
+    AppTab.RISK to Icons.Default.Security,
     AppTab.NEWS to Icons.Default.Newspaper,
     AppTab.SETTINGS to Icons.Default.Settings
 )
 
 private val translations = mapOf(
-    "fr" to mapOf("home" to "Accueil", "markets" to "Marchés", "signals" to "Signaux", "portfolio" to "Portefeuille", "backtest" to "Backtest", "ai" to "IA & Stratégies", "news" to "Actualités", "settings" to "Paramètres", "overview" to "Vue d'ensemble", "refresh" to "Actualiser", "connect" to "Connexion aux données", "owner" to "Propriétaire GitHub", "repo" to "Dépôt du moteur", "branch" to "Branche", "token" to "Jeton GitHub (facultatif)", "save" to "Enregistrer et synchroniser", "loading" to "Chargement des données…", "error" to "Connexion indisponible", "live" to "Prix OKX en direct", "noData" to "Aucune donnée disponible", "totalSignals" to "Signaux historiques", "strategies" to "Stratégies suivies", "newsSources" to "Sources d'actualités", "models" to "Modèles IA", "latestSignals" to "Derniers signaux", "topMarkets" to "Marchés suivis", "performance" to "Performance des stratégies", "risk" to "Risque & décisions", "dataStatus" to "État des données", "ready" to "Prêt", "language" to "Langue de l'application", "githubHelp" to "Le jeton est facultatif pour un dépôt public. Pour un dépôt privé, utilisez un jeton à accès minimal.", "notAdvice" to "Analyse informative — pas un conseil financier.", "loaded" to "Données synchronisées", "noToken" to "Mode dépôt public"),
-    "en" to mapOf("home" to "Home", "markets" to "Markets", "signals" to "Signals", "portfolio" to "Portfolio", "backtest" to "Backtest", "ai" to "AI & Strategies", "news" to "News", "settings" to "Settings", "overview" to "Overview", "refresh" to "Refresh", "connect" to "Data connection", "owner" to "GitHub owner", "repo" to "Engine repository", "branch" to "Branch", "token" to "GitHub token (optional)", "save" to "Save & sync", "loading" to "Loading data…", "error" to "Connection unavailable", "live" to "Live OKX prices", "noData" to "No data available", "totalSignals" to "Historical signals", "strategies" to "Tracked strategies", "newsSources" to "News sources", "models" to "AI models", "latestSignals" to "Latest signals", "topMarkets" to "Tracked markets", "performance" to "Strategy performance", "risk" to "Risk & decisions", "dataStatus" to "Data status", "ready" to "Ready", "language" to "App language", "githubHelp" to "Token is optional for public repositories. For a private repository, use a least-privilege token.", "notAdvice" to "Informational analysis — not financial advice.", "loaded" to "Data synchronized", "noToken" to "Public repository mode"),
-    "ar" to mapOf("home" to "الرئيسية", "markets" to "الأسواق", "signals" to "الإشارات", "portfolio" to "المحفظة", "backtest" to "الاختبار التاريخي", "ai" to "الذكاء والاستراتيجيات", "news" to "الأخبار", "settings" to "الإعدادات", "overview" to "نظرة عامة", "refresh" to "تحديث", "connect" to "الاتصال بالبيانات", "owner" to "مالك GitHub", "repo" to "مستودع المحرك", "branch" to "الفرع", "token" to "رمز GitHub (اختياري)", "save" to "حفظ ومزامنة", "loading" to "جارٍ تحميل البيانات…", "error" to "الاتصال غير متاح", "live" to "أسعار OKX مباشرة", "noData" to "لا توجد بيانات", "totalSignals" to "الإشارات التاريخية", "strategies" to "الاستراتيجيات المتابعة", "newsSources" to "مصادر الأخبار", "models" to "نماذج الذكاء الاصطناعي", "latestSignals" to "أحدث الإشارات", "topMarkets" to "الأسواق المتابعة", "performance" to "أداء الاستراتيجيات", "risk" to "المخاطر والقرارات", "dataStatus" to "حالة البيانات", "ready" to "جاهز", "language" to "لغة التطبيق", "githubHelp" to "الرمز اختياري للمستودع العام. للمستودع الخاص استخدم رمزًا بأقل الصلاحيات.", "notAdvice" to "تحليل للمعلومات فقط، وليس نصيحة مالية.", "loaded" to "تمت مزامنة البيانات", "noToken" to "وضع المستودع العام"),
-    "es" to mapOf("home" to "Inicio", "markets" to "Mercados", "signals" to "Señales", "portfolio" to "Cartera", "backtest" to "Backtest", "ai" to "IA y estrategias", "news" to "Noticias", "settings" to "Ajustes", "overview" to "Resumen", "refresh" to "Actualizar", "connect" to "Conexión de datos", "owner" to "Propietario GitHub", "repo" to "Repositorio", "branch" to "Rama", "token" to "Token GitHub (opcional)", "save" to "Guardar y sincronizar", "loading" to "Cargando datos…", "error" to "Conexión no disponible", "live" to "Precios OKX en vivo", "noData" to "Sin datos disponibles", "totalSignals" to "Señales históricas", "strategies" to "Estrategias seguidas", "newsSources" to "Fuentes de noticias", "models" to "Modelos IA", "latestSignals" to "Últimas señales", "topMarkets" to "Mercados seguidos", "performance" to "Rendimiento de estrategias", "risk" to "Riesgo y decisiones", "dataStatus" to "Estado de datos", "ready" to "Listo", "language" to "Idioma de la aplicación", "githubHelp" to "El token es opcional para repositorios públicos. Para privados, usa un token de privilegios mínimos.", "notAdvice" to "Análisis informativo; no es asesoramiento financiero.", "loaded" to "Datos sincronizados", "noToken" to "Modo repositorio público"),
-    "tr" to mapOf("home" to "Ana Sayfa", "markets" to "Piyasalar", "signals" to "Sinyaller", "portfolio" to "Portföy", "backtest" to "Backtest", "ai" to "YZ ve Stratejiler", "news" to "Haberler", "settings" to "Ayarlar", "overview" to "Genel Bakış", "refresh" to "Yenile", "connect" to "Veri bağlantısı", "owner" to "GitHub sahibi", "repo" to "Motor deposu", "branch" to "Dal", "token" to "GitHub token (isteğe bağlı)", "save" to "Kaydet ve eşitle", "loading" to "Veriler yükleniyor…", "error" to "Bağlantı kullanılamıyor", "live" to "Canlı OKX fiyatları", "noData" to "Veri yok", "totalSignals" to "Geçmiş sinyaller", "strategies" to "İzlenen stratejiler", "newsSources" to "Haber kaynakları", "models" to "YZ modelleri", "latestSignals" to "Son sinyaller", "topMarkets" to "İzlenen piyasalar", "performance" to "Strateji performansı", "risk" to "Risk ve kararlar", "dataStatus" to "Veri durumu", "ready" to "Hazır", "language" to "Uygulama dili", "githubHelp" to "Herkese açık depolar için token isteğe bağlıdır. Özel depolarda en az yetkili token kullanın.", "notAdvice" to "Bilgilendirme amaçlı analiz; finansal tavsiye değildir.", "loaded" to "Veriler eşitlendi", "noToken" to "Herkese açık depo modu"),
-    "zh" to mapOf("home" to "首页", "markets" to "市场", "signals" to "信号", "portfolio" to "投资组合", "backtest" to "回测", "ai" to "AI与策略", "news" to "新闻", "settings" to "设置", "overview" to "总览", "refresh" to "刷新", "connect" to "数据连接", "owner" to "GitHub所有者", "repo" to "引擎仓库", "branch" to "分支", "token" to "GitHub令牌（可选）", "save" to "保存并同步", "loading" to "正在加载数据…", "error" to "连接不可用", "live" to "OKX实时价格", "noData" to "暂无数据", "totalSignals" to "历史信号", "strategies" to "跟踪策略", "newsSources" to "新闻来源", "models" to "AI模型", "latestSignals" to "最新信号", "topMarkets" to "关注市场", "performance" to "策略表现", "risk" to "风险与决策", "dataStatus" to "数据状态", "ready" to "就绪", "language" to "应用语言", "githubHelp" to "公开仓库无需令牌。私有仓库请使用最小权限令牌。", "notAdvice" to "仅供参考，不构成财务建议。", "loaded" to "数据已同步", "noToken" to "公开仓库模式")
+    "fr" to mapOf("home" to "Accueil", "markets" to "Marchés", "signals" to "Signaux", "portfolio" to "Portefeuille", "backtest" to "Backtest", "ai" to "IA & Stratégies", "risklab" to "Laboratoire de risque", "news" to "Actualités", "settings" to "Paramètres", "overview" to "Vue d'ensemble", "refresh" to "Actualiser", "connect" to "Connexion aux données", "owner" to "Propriétaire GitHub", "repo" to "Dépôt du moteur", "branch" to "Branche", "token" to "Jeton GitHub (facultatif)", "save" to "Enregistrer et synchroniser", "loading" to "Chargement des données…", "error" to "Connexion indisponible", "live" to "Prix OKX en direct", "noData" to "Aucune donnée disponible", "totalSignals" to "Signaux historiques", "strategies" to "Stratégies suivies", "newsSources" to "Sources d'actualités", "models" to "Modèles IA", "latestSignals" to "Derniers signaux", "topMarkets" to "Marchés suivis", "performance" to "Performance des stratégies", "risk" to "Risque & décisions", "dataStatus" to "État des données", "ready" to "Prêt", "language" to "Langue de l'application", "githubHelp" to "Le jeton est facultatif pour un dépôt public. Pour un dépôt privé, utilisez un jeton à accès minimal.", "notAdvice" to "Analyse informative — pas un conseil financier.", "loaded" to "Données synchronisées", "noToken" to "Mode dépôt public"),
+    "en" to mapOf("home" to "Home", "markets" to "Markets", "signals" to "Signals", "portfolio" to "Portfolio", "backtest" to "Backtest", "ai" to "AI & Strategies", "risklab" to "Risk Lab", "news" to "News", "settings" to "Settings", "overview" to "Overview", "refresh" to "Refresh", "connect" to "Data connection", "owner" to "GitHub owner", "repo" to "Engine repository", "branch" to "Branch", "token" to "GitHub token (optional)", "save" to "Save & sync", "loading" to "Loading data…", "error" to "Connection unavailable", "live" to "Live OKX prices", "noData" to "No data available", "totalSignals" to "Historical signals", "strategies" to "Tracked strategies", "newsSources" to "News sources", "models" to "AI models", "latestSignals" to "Latest signals", "topMarkets" to "Tracked markets", "performance" to "Strategy performance", "risk" to "Risk & decisions", "dataStatus" to "Data status", "ready" to "Ready", "language" to "App language", "githubHelp" to "Token is optional for public repositories. For a private repository, use a least-privilege token.", "notAdvice" to "Informational analysis — not financial advice.", "loaded" to "Data synchronized", "noToken" to "Public repository mode"),
+    "ar" to mapOf("home" to "الرئيسية", "markets" to "الأسواق", "signals" to "الإشارات", "portfolio" to "المحفظة", "backtest" to "الاختبار التاريخي", "ai" to "الذكاء والاستراتيجيات", "risklab" to "مختبر المخاطر", "news" to "الأخبار", "settings" to "الإعدادات", "overview" to "نظرة عامة", "refresh" to "تحديث", "connect" to "الاتصال بالبيانات", "owner" to "مالك GitHub", "repo" to "مستودع المحرك", "branch" to "الفرع", "token" to "رمز GitHub (اختياري)", "save" to "حفظ ومزامنة", "loading" to "جارٍ تحميل البيانات…", "error" to "الاتصال غير متاح", "live" to "أسعار OKX مباشرة", "noData" to "لا توجد بيانات", "totalSignals" to "الإشارات التاريخية", "strategies" to "الاستراتيجيات المتابعة", "newsSources" to "مصادر الأخبار", "models" to "نماذج الذكاء الاصطناعي", "latestSignals" to "أحدث الإشارات", "topMarkets" to "الأسواق المتابعة", "performance" to "أداء الاستراتيجيات", "risk" to "المخاطر والقرارات", "dataStatus" to "حالة البيانات", "ready" to "جاهز", "language" to "لغة التطبيق", "githubHelp" to "الرمز اختياري للمستودع العام. للمستودع الخاص استخدم رمزًا بأقل الصلاحيات.", "notAdvice" to "تحليل للمعلومات فقط، وليس نصيحة مالية.", "loaded" to "تمت مزامنة البيانات", "noToken" to "وضع المستودع العام"),
+    "es" to mapOf("home" to "Inicio", "markets" to "Mercados", "signals" to "Señales", "portfolio" to "Cartera", "backtest" to "Backtest", "ai" to "IA y estrategias", "risklab" to "Laboratorio de riesgo", "news" to "Noticias", "settings" to "Ajustes", "overview" to "Resumen", "refresh" to "Actualizar", "connect" to "Conexión de datos", "owner" to "Propietario GitHub", "repo" to "Repositorio", "branch" to "Rama", "token" to "Token GitHub (opcional)", "save" to "Guardar y sincronizar", "loading" to "Cargando datos…", "error" to "Conexión no disponible", "live" to "Precios OKX en vivo", "noData" to "Sin datos disponibles", "totalSignals" to "Señales históricas", "strategies" to "Estrategias seguidas", "newsSources" to "Fuentes de noticias", "models" to "Modelos IA", "latestSignals" to "Últimas señales", "topMarkets" to "Mercados seguidos", "performance" to "Rendimiento de estrategias", "risk" to "Riesgo y decisiones", "dataStatus" to "Estado de datos", "ready" to "Listo", "language" to "Idioma de la aplicación", "githubHelp" to "El token es opcional para repositorios públicos. Para privados, usa un token de privilegios mínimos.", "notAdvice" to "Análisis informativo; no es asesoramiento financiero.", "loaded" to "Datos sincronizados", "noToken" to "Modo repositorio público"),
+    "tr" to mapOf("home" to "Ana Sayfa", "markets" to "Piyasalar", "signals" to "Sinyaller", "portfolio" to "Portföy", "backtest" to "Backtest", "ai" to "YZ ve Stratejiler", "risklab" to "Risk Laboratuvarı", "news" to "Haberler", "settings" to "Ayarlar", "overview" to "Genel Bakış", "refresh" to "Yenile", "connect" to "Veri bağlantısı", "owner" to "GitHub sahibi", "repo" to "Motor deposu", "branch" to "Dal", "token" to "GitHub token (isteğe bağlı)", "save" to "Kaydet ve eşitle", "loading" to "Veriler yükleniyor…", "error" to "Bağlantı kullanılamıyor", "live" to "Canlı OKX fiyatları", "noData" to "Veri yok", "totalSignals" to "Geçmiş sinyaller", "strategies" to "İzlenen stratejiler", "newsSources" to "Haber kaynakları", "models" to "YZ modelleri", "latestSignals" to "Son sinyaller", "topMarkets" to "İzlenen piyasalar", "performance" to "Strateji performansı", "risk" to "Risk ve kararlar", "dataStatus" to "Veri durumu", "ready" to "Hazır", "language" to "Uygulama dili", "githubHelp" to "Herkese açık depolar için token isteğe bağlıdır. Özel depolarda en az yetkili token kullanın.", "notAdvice" to "Bilgilendirme amaçlı analiz; finansal tavsiye değildir.", "loaded" to "Veriler eşitlendi", "noToken" to "Herkese açık depo modu"),
+    "zh" to mapOf("home" to "首页", "markets" to "市场", "signals" to "信号", "portfolio" to "投资组合", "backtest" to "回测", "ai" to "AI与策略", "risklab" to "风险实验室", "news" to "新闻", "settings" to "设置", "overview" to "总览", "refresh" to "刷新", "connect" to "数据连接", "owner" to "GitHub所有者", "repo" to "引擎仓库", "branch" to "分支", "token" to "GitHub令牌（可选）", "save" to "保存并同步", "loading" to "正在加载数据…", "error" to "连接不可用", "live" to "OKX实时价格", "noData" to "暂无数据", "totalSignals" to "历史信号", "strategies" to "跟踪策略", "newsSources" to "新闻来源", "models" to "AI模型", "latestSignals" to "最新信号", "topMarkets" to "关注市场", "performance" to "策略表现", "risk" to "风险与决策", "dataStatus" to "数据状态", "ready" to "就绪", "language" to "应用语言", "githubHelp" to "公开仓库无需令牌。私有仓库请使用最小权限令牌。", "notAdvice" to "仅供参考，不构成财务建议。", "loaded" to "数据已同步", "noToken" to "公开仓库模式")
 )
 
 private fun t(lang: String, key: String): String =
@@ -110,6 +111,7 @@ data class Snapshot(
     val closedTrades: List<PortfolioItem> = emptyList(),
     val backtestCount: Int = 0,
     val backtestSummary: List<Pair<String, String>> = emptyList(),
+    val riskSummary: List<Pair<String, String>> = emptyList(),
     val portfolioSummary: List<Pair<String, String>> = emptyList(),
     val updatedAt: String = "—",
     val errors: List<String> = emptyList()
@@ -234,6 +236,8 @@ private class DataClient(private val context: Context) {
         val discovery = json("candle_strategy_discovery.json") ?: JSONObject()
         val entryMethods = json("entry_method_memory.json") ?: JSONObject()
         val autoTune = json("auto_tuned_config.json") ?: JSONObject()
+        val analysisMemory = json("analysis_memory_0001.json") ?: JSONObject()
+        val topGainerLearning = json("top_gainer_learning.json") ?: JSONObject()
         val strategySource = text("okx_quant/strategy_registry.py").orEmpty()
         val strategyUniverse = Regex("""@strategy\(\s*["']([^"']+)["']""").findAll(strategySource).map { it.groupValues[1] }.distinct().toList()
         val backtestText = textAny("backtest_results_0001.json", "backtest_results.json")
@@ -359,6 +363,10 @@ private class DataClient(private val context: Context) {
         addPrimitiveFields(portfolioJson, portfolioPairs)
         val backtestPairs = mutableListOf<Pair<String, String>>()
         addPrimitiveFields(backtestJson, backtestPairs)
+        val riskPairs = mutableListOf<Pair<String, String>>()
+        addPrimitiveFields(analysisMemory, riskPairs, prefix = "analysis")
+        addPrimitiveFields(topGainerLearning, riskPairs, prefix = "learning")
+        addPrimitiveFields(backtestJson, riskPairs, prefix = "backtest")
         val history = autoTune.optJSONArray("history")
         val candidates = discovery.optJSONArray("candidates")
         var validated = 0
@@ -390,6 +398,7 @@ private class DataClient(private val context: Context) {
             closedTrades = closedItems,
             backtestCount = backtestJson?.length() ?: 0,
             backtestSummary = backtestPairs,
+            riskSummary = riskPairs.distinctBy { it.first }.take(24),
             portfolioSummary = portfolioPairs.distinctBy { it.first }.take(12),
             updatedAt = news.optString("updatedAt", "—"),
             errors = errors.distinct().take(8)
@@ -486,14 +495,14 @@ private fun ZiedQuantApp(context: Context) {
                         )
                     }
                     NavigationBarItem(
-                        selected = tab in listOf(AppTab.BACKTEST, AppTab.AI, AppTab.NEWS, AppTab.SETTINGS),
+                        selected = tab in listOf(AppTab.BACKTEST, AppTab.AI, AppTab.RISK, AppTab.NEWS, AppTab.SETTINGS),
                         onClick = { moreExpanded = true },
                         icon = { Icon(Icons.Default.GridView, contentDescription = null, modifier = Modifier.size(21.dp)) },
                         label = { Text(if (lang == "ar") "المزيد" else if (lang == "fr") "Plus" else if (lang == "zh") "更多" else if (lang == "tr") "Daha" else if (lang == "es") "Más" else "More", fontSize = 10.sp) },
                         colors = NavigationBarItemDefaults.colors(selectedIconColor = Neon, selectedTextColor = Neon, indicatorColor = Color(0xFF18372F), unselectedIconColor = Muted, unselectedTextColor = Muted)
                     )
                     DropdownMenu(expanded = moreExpanded, onDismissRequest = { moreExpanded = false }) {
-                        listOf(AppTab.BACKTEST, AppTab.AI, AppTab.NEWS, AppTab.SETTINGS).forEach { item ->
+                        listOf(AppTab.BACKTEST, AppTab.AI, AppTab.RISK, AppTab.NEWS, AppTab.SETTINGS).forEach { item ->
                             DropdownMenuItem(
                                 text = { Text(t(lang, item.name.lowercase())) },
                                 leadingIcon = { Icon(tabIcons[item] ?: Icons.Default.Dashboard, null) },
@@ -512,6 +521,7 @@ private fun ZiedQuantApp(context: Context) {
                     AppTab.PORTFOLIO -> PortfolioScreen(lang, snapshot)
                     AppTab.BACKTEST -> DataScreen(lang, t(lang, "backtest"), Icons.Default.QueryStats, snapshot.backtestSummary, snapshot.errors, "backtest_results_0001.json")
                     AppTab.AI -> AiScreen(lang, snapshot)
+                    AppTab.RISK -> RiskLabScreen(lang, snapshot)
                     AppTab.NEWS -> NewsScreen(lang, snapshot)
                     AppTab.SETTINGS -> SettingsScreen(
                         lang, { lang = it; prefs.edit().putString("language", it).apply() },
@@ -800,6 +810,64 @@ private fun DataScreen(lang: String, title: String, icon: androidx.compose.ui.gr
             Text(if (file.startsWith("portfolio")) "Portfolio JSON snapshot" else "Backtest JSON snapshot", color = Muted, fontSize = 11.sp)
             Text("Ces valeurs sont extraites du fichier actuel du moteur. Les commandes d'exécution et les ordres réels ne sont pas déclenchés depuis cet écran.", color = Muted, fontSize = 11.sp)
         }
+    }
+}
+
+@Composable
+private fun RiskLabScreen(lang: String, data: Snapshot) {
+    ScreenColumn {
+        SectionTitle(t(lang, "risklab"), "Integrity · Strategy decay · Portfolio risk · Operations")
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            MetricCard("Open positions", data.openPositions.size.toString(), Neon, Modifier.weight(1f))
+            MetricCard("Pending orders", data.pendingOrders.size.toString(), Purple, Modifier.weight(1f))
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            MetricCard("Closed trades", data.closedTrades.size.toString(), Cyan, Modifier.weight(1f))
+            MetricCard("Backtest metrics", data.backtestSummary.size.toString(), if (data.backtestSummary.isNotEmpty()) Neon else Red, Modifier.weight(1f))
+        }
+        PanelCard {
+            SectionTitle(if (lang == "ar") "فحوصات المخاطر والموثوقية" else if (lang == "fr") "Contrôles de risque et fiabilité" else "Risk & reliability controls")
+            val controls = listOf(
+                "Backtest integrity" to "Review stored historical metrics",
+                "Anti-overfitting / Walk-forward" to "Check available validation evidence",
+                "Strategy reliability" to "Compare win rate and profit factor",
+                "Market regime" to "Inspect the regime attached to each signal",
+                "Portfolio risk" to "Review open positions and pending orders",
+                "Performance drift / Strategy decay" to "Review strategy statistics and learning memory",
+                "No-Trade Intelligence" to "Treat weak or incomplete signals conservatively"
+            )
+            controls.forEach { (name, detail) ->
+                Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Icon(Icons.Default.Shield, null, tint = Cyan, modifier = Modifier.size(20.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(name, color = White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                        Text(detail, color = Muted, fontSize = 10.sp)
+                    }
+                }
+            }
+        }
+        PanelCard {
+            SectionTitle(if (lang == "ar") "بيانات التشخيص المتاحة" else if (lang == "fr") "Données de diagnostic disponibles" else "Available diagnostic data")
+            if (data.riskSummary.isEmpty()) EmptyText(t(lang, "noData"))
+            data.riskSummary.forEach { (key, value) ->
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Top) {
+                    Text(key, color = Muted, fontSize = 10.sp, modifier = Modifier.weight(1f))
+                    Text(value.take(80), color = White, fontSize = 11.sp, modifier = Modifier.weight(1f))
+                }
+                HorizontalDivider(color = Color(0xFF202B3A))
+            }
+        }
+        PanelCard {
+            SectionTitle(t(lang, "performance"))
+            if (data.strategyStats.isEmpty()) EmptyText(t(lang, "noData"))
+            data.strategyStats.forEach { (name, win, pf) ->
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(name, color = White, fontSize = 11.sp, modifier = Modifier.weight(1f))
+                    Text("WR ${"%.1f".format(win)}% · PF ${"%.2f".format(pf)}", color = if (pf >= 1) Neon else Red, fontSize = 10.sp)
+                }
+            }
+        }
+        Text("Read-only diagnostics: this screen does not place or execute real orders.", color = Muted, fontSize = 10.sp)
     }
 }
 
