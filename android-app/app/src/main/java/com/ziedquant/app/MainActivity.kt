@@ -83,7 +83,7 @@ private fun t(lang: String, key: String): String =
     translations[lang]?.get(key) ?: translations["fr"]?.get(key) ?: key
 
 data class Market(val symbol: String, val price: Double, val change: Double, val volume: Double)
-data class Signal(val symbol: String, val side: String, val score: Double, val probability: Double, val price: Double, val target: Double, val stop: Double, val regime: String)
+data class Signal(val symbol: String, val side: String, val score: Double, val probability: Double, val price: Double, val target: Double, val stop: Double, val regime: String, val strategy: String = "—", val expectedValue: Double = 0.0, val decay: Double = 0.0, val sizing: Double = 0.0, val noTrade: Boolean = false)
 data class PortfolioItem(val symbol: String, val side: String, val entry: Double, val mark: Double, val units: Double, val allocated: Double, val pnl: Double, val status: String)
 data class Snapshot(
     val markets: List<Market> = emptyList(),
@@ -160,6 +160,7 @@ class MainActivity : ComponentActivity() {
             .setStyle(android.app.Notification.BigTextStyle().bigText(
                 "Nouvelle signal détecté: ${signal.symbol} / ${signal.side}\n" +
                     "Score: ${signal.score} • Probabilité: ${signal.probability}%\n" +
+                    "Stratégie: ${signal.strategy} • EV: ${signal.expectedValue}\n" +
                     "Prix: ${signal.price} • TP: ${signal.target} • SL: ${signal.stop}"
             ))
             .setAutoCancel(true)
@@ -268,7 +269,12 @@ private class DataClient(private val context: Context) {
                 price = o.optDouble("price", 0.0),
                 target = o.optDouble("target", 0.0),
                 stop = o.optDouble("stop", 0.0),
-                regime = o.optString("dynamicMarketRegime", "—")
+                regime = o.optString("dynamicMarketRegime", "—"),
+                strategy = o.optString("strategy", o.optString("metaStrategy", "—")),
+                expectedValue = o.optDouble("expectedValue", o.optDouble("ev", 0.0)),
+                decay = o.optDouble("decay", o.optDouble("strategyDecay", 0.0)),
+                sizing = o.optDouble("positionSizeMultiplier", o.optDouble("sizing", 0.0)),
+                noTrade = o.optBoolean("noTrade", o.optString("decision", "").contains("NO-TRADE", true))
             )
         }.sortedByDescending { it.score }.take(30)
 
@@ -706,6 +712,7 @@ private fun SignalRow(s: Signal) {
             Column(Modifier.weight(1f)) {
                 Text(s.symbol, color = White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                 Text("Score ${"%.1f".format(s.score)} · ${s.regime}", color = Muted, fontSize = 10.sp)
+                Text("Meta: ${s.strategy}", color = Cyan, fontSize = 10.sp)
             }
             Surface(color = if (s.side.contains("SHORT", true) || s.side.contains("SELL", true)) Color(0xFF421D2A) else Color(0xFF10372D), shape = RoundedCornerShape(8.dp)) {
                 Text(s.side, modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp), color = if (s.side.contains("SHORT", true) || s.side.contains("SELL", true)) Red else Neon, fontSize = 11.sp, fontWeight = FontWeight.Bold)
@@ -719,6 +726,12 @@ private fun SignalRow(s: Signal) {
             MiniValue("Target", price(s.target), Neon, Modifier.weight(1f))
             MiniValue("Stop", price(s.stop), Red, Modifier.weight(1f))
         }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            MiniValue("Expected Value", if (s.expectedValue == 0.0) "—" else String.format("%.2f%%", s.expectedValue), Cyan, Modifier.weight(1f))
+            MiniValue("Decay", if (s.decay == 0.0) "—" else String.format("%.1f%%", s.decay * 100), Purple, Modifier.weight(1f))
+            MiniValue("Sizing", if (s.sizing == 0.0) "—" else String.format("%.2f×", s.sizing), Neon, Modifier.weight(1f))
+        }
+        if (s.noTrade) Text("NO-TRADE · signal blocked by risk logic", color = Red, fontSize = 11.sp, fontWeight = FontWeight.Bold)
     }
 }
 
